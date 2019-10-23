@@ -1,10 +1,14 @@
 # Target library
 lib := libuthread.a
+OBJS = queue.o 
 
-libuthread.a: test.o
-	ar rcs libuthread.a test.
+libuthread.a: $(OBJS)
+	ar rcs libuthread.a $(OBJS)
 
-test.o: test.c
-	gcc -c test.c
+queue.o: queue.c
+	gcc -c queue.c
+
+clean:
+	rm -rf *.o *.a
 
 ## TODO: Phase 1.1
