@@ -2,8 +2,7 @@
 #  **Add more lines to this variable in order to compile more programs**
 #  You shouldn't have to touch the rest (but you can read it to understand!)
 programs := \
-	uthread_hello.x \
-	uthread_yield.x
+	test_queue.x
 
 # User-level thread library
 UTHREADLIB := libuthread
