@@ -19,8 +19,8 @@ int main(void)
 {
 	uthread_t tid;
 
-	//tid = uthread_create(hello, NULL);
-	//uthread_join(tid, NULL);
+	tid = uthread_create(hello, NULL);
+	uthread_join(tid, NULL);
 
 	return 0;
 }

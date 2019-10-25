@@ -20,6 +20,7 @@ typedef struct queue* queue_t;
  * Return: Pointer to new empty queue. NULL in case of failure when allocating
  * the new queue.
  */
+ 
 queue_t queue_create(void);
 
 /*

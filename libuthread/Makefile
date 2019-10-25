@@ -1,6 +1,6 @@
 # Target library
 lib := libuthread.a
-OBJS = queue.o 
+OBJS = queue.o uthread.o
 
 libuthread.a: $(OBJS)
 	ar rcs libuthread.a $(OBJS)
@@ -8,6 +8,12 @@ libuthread.a: $(OBJS)
 queue.o: queue.c
 	gcc -c queue.c
 
+uthread.o: uthread.c
+	gcc -c uthread.c
+
+context.o: context.c
+	gcc -c context.c	
+	
 clean:
 	rm -rf *.o *.a
 
