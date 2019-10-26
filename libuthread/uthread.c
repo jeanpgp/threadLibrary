@@ -56,12 +56,6 @@ void uthread_yield(void)
 	
 	struct uthread* curr_t = (struct uthread*)curr;
 	struct uthread* thread = (struct uthread*)data;
-	printf("curr: %d\n",curr_t->tid); 
-	printf("ctx address: %p\n",&curr_t->context);
-	printf("stack pointer: %p\n",&curr_t->stack);	
-	printf("next: %d\n",thread->tid);
-	printf("next address: %p\n",&thread->context); 
-	printf("stack pointer: %p\n",&thread->stack);	
 	my_tid = thread->tid;
 	uthread_ctx_switch( curr_t->context, thread->context);
 	
@@ -84,27 +78,12 @@ int find_self(void *data, void *arg)
 uthread_t uthread_self(void)
 {
 	/* TODO Phase 2 */
-	/*
-	void *data;
-	printf("uthread_self\n");
-	int retval = queue_iterate(queue, find_self, NULL, &data);
-	printf("%p\n",data);
-	if (retval == -1)
-	{
-		printf("Self not found");
-	}
-	struct uthread* thread = (struct uthread*)data;
-	printf("my tid %d\n",thread->tid);
-	return thread->tid;
-	*/
-	printf("my tid: %d\n",my_tid);  
 	return my_tid;
 
 }
 
 int create_main()
 {
-	printf("Create Main");
 	queue = queue_create();
 	running = queue_create();
 	main_queue = queue_create();
@@ -114,6 +93,7 @@ int create_main()
 	if (getcontext(uctx)){
 		return -1;
 	}
+
 	thread->context = uctx;
 	thread->tid = tid_idx;
 	thread->stack = uthread_ctx_alloc_stack();
@@ -131,8 +111,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	}
 	/* TODO Phase 2 */
 	int retval;
-	char stack[STACK_SIZE];
-	printf("%p",func);
+	void* stack = uthread_ctx_alloc_stack();
 	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	retval = uthread_ctx_init(uctx, stack, func, NULL);
 	if (retval !=0){
@@ -145,7 +124,6 @@ int uthread_create(uthread_func_t func, void *arg)
 	thread->stack = stack;
 	thread->state = 0; /* Ready */
 	tid_idx++;
-	printf("created %d\n",thread->tid);
 	queue_enqueue(queue, thread);
 	return thread->tid;
 }
@@ -179,8 +157,6 @@ int uthread_join(uthread_t tid, int *retval)
 
 	struct uthread* thread = (struct uthread*)data;
 	thread->state = 1;
-	
-	printf("my tid:%d\n",thread->tid);
 	/* main yield to thread1 */
 	my_tid = thread->tid;
 	uthread_ctx_switch( main_t->context, thread->context);
