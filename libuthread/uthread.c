@@ -14,7 +14,6 @@
 #include "uthread.h"
 
 #define STACK_SIZE 32768
-typedef struct _uthread_t uthread_t;
 
 struct uthread{
 	uthread_t tid;
@@ -26,8 +25,8 @@ struct uthread{
 
 queue_t queue;
 queue_t zombie;
-uthread_t* running_t;
-uthread_t* main_t;
+void* running_t;
+void* main_t;
 uthread_t tid_idx = 0;
 uthread_t my_tid = 0;
 
