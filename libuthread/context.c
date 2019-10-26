@@ -14,7 +14,7 @@ void uthread_ctx_switch(uthread_ctx_t *prev, uthread_ctx_t *next)
 	 * swapcontext() saves the current context in structure pointer by @prev
 	 * and actives the context pointed by @next
 	 */
-	 
+	//printf("swap\n");
 	if (swapcontext(prev, next)) {
 		perror("swapcontext");
 		exit(1);
@@ -55,7 +55,6 @@ int uthread_ctx_init(uthread_ctx_t *uctx, void *top_of_stack,
 	 */
 	if (getcontext(uctx))
 		return -1;
-
 	/*
 	 * Change context @uctx's stack to the specified stack
 	 */

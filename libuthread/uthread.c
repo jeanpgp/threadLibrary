@@ -12,64 +12,141 @@
 #include "preempt.h"
 #include "queue.h"
 #include "uthread.h"
-#include "context.h"
 
 #define STACK_SIZE 32768
 
+queue_t queue;
+queue_t running;
+queue_t main_queue;
 
 struct uthread{
-	int tid;
-	ucontext_t context;
+	uthread_t tid;
+	uthread_ctx_t* context;
 	char* stack;
-	/* 0 running, 1 ready, 2 blocked, 3 zombie */
+	/* 0 ready, 1 running, 2 blocked, 3 zombie */
 	int state;
 };
-int tid_idx = 0;
 
-queue_t queue ;
+uthread_t tid_idx = 0;
+uthread_t my_tid = 0;
+
+int find_tid(void *data, void *arg)
+{
+	struct uthread* thread = (struct uthread*)data;
+	if (thread->tid == *(uthread_t*)arg){
+		return 1;
+	}
+	return 0;
+}
 
 /* TODO Phase 2 */
 
 void uthread_yield(void)
 {
 	/* TODO Phase 2 */
+	void *data;
+	void *curr;
+	
+	queue_dequeue(queue, &data); //pop the next in line;
+	queue_enqueue(running, data);
+
+	/* Dequeue running */	
+	queue_dequeue(running, &curr); 
+	queue_enqueue(queue, curr); 
+	
+	struct uthread* curr_t = (struct uthread*)curr;
+	struct uthread* thread = (struct uthread*)data;
+	printf("curr: %d\n",curr_t->tid); 
+	printf("ctx address: %p\n",&curr_t->context);
+	printf("stack pointer: %p\n",&curr_t->stack);	
+	printf("next: %d\n",thread->tid);
+	printf("next address: %p\n",&thread->context); 
+	printf("stack pointer: %p\n",&thread->stack);	
+	my_tid = thread->tid;
+	uthread_ctx_switch( curr_t->context, thread->context);
+	
 }
+
+
+/*
+int find_self(void *data, void *arg)
+{
+	struct uthread* thread = (struct uthread*)data;
+	/*find the running thread*//*
+	if (thread->state == 1 ){
+		printf("find self\n");
+		return 1;
+	}
+	return 0;
+}
+*/
 
 uthread_t uthread_self(void)
 {
 	/* TODO Phase 2 */
+	/*
+	void *data;
+	printf("uthread_self\n");
+	int retval = queue_iterate(queue, find_self, NULL, &data);
+	printf("%p\n",data);
+	if (retval == -1)
+	{
+		printf("Self not found");
+	}
+	struct uthread* thread = (struct uthread*)data;
+	printf("my tid %d\n",thread->tid);
+	return thread->tid;
+	*/
+	printf("my tid: %d\n",my_tid);  
+	return my_tid;
+
+}
+
+int create_main()
+{
+	printf("Create Main");
+	queue = queue_create();
+	running = queue_create();
+	main_queue = queue_create();
+	//initializing main
+	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
+	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
+	if (getcontext(uctx)){
+		return -1;
+	}
+	thread->context = uctx;
+	thread->tid = tid_idx;
+	thread->stack = uthread_ctx_alloc_stack();
+	thread->state = 1; /* Running */
+	tid_idx++;
+	queue_enqueue(main_queue, thread);
+	return 0;
 }
 
 int uthread_create(uthread_func_t func, void *arg)
 {
 	/*If queue has not been malloced then malloc!!*/
-	if (queue == NULL){
-		queue = queue_create();
-		//initializing main
-		struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
-		if (getcontext(&thread->context)){
-			return -1;
-		}
-		thread->stack = uthread_ctx_alloc_stack();
+	if (tid_idx == 0){
+		create_main();
 	}
-
 	/* TODO Phase 2 */
 	int retval;
 	char stack[STACK_SIZE];
-	uthread_ctx_t uctx;
-	retval = uthread_ctx_init(&uctx, stack, func, NULL);
+	printf("%p",func);
+	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
+	retval = uthread_ctx_init(uctx, stack, func, NULL);
 	if (retval !=0){
 		return -1;
-	}
-	
-	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));	
-	thread->tid = queue_length(queue)+1;
+	}	
+	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
+
+	thread->tid = tid_idx;
 	thread->context = uctx;
 	thread->stack = stack;
+	thread->state = 0; /* Ready */
+	tid_idx++;
+	printf("created %d\n",thread->tid);
 	queue_enqueue(queue, thread);
-	
-	
-
 	return thread->tid;
 }
 
@@ -78,29 +155,37 @@ void uthread_exit(int retval)
 	/* TODO Phase 2 */
 }
 
-int find_tid(void *data, void *arg)
-{
-	printf("tid: %d\n",*((int*)arg));
-	struct uthread* thread = (struct uthread*)data;
-	if (thread->tid == *(int*)arg){
-		return 1;
-	}
-	return 0;
-}
 
 /*Context Switch*/
 int uthread_join(uthread_t tid, int *retval)
 {
 	/* TODO Phase 2 */
 	void *data;
+	void *main_;
+	uthread_t main_tid = 0;
 	uthread_ctx_t main_context;
 	/*(queue_t queue, queue_func_t func, void *arg, void **data)*/
-	queue_iterate(queue, find_tid, &tid, &data);
 	/* Get data which is the struct of next */
 	/* uthread_ctx_switch(uthread_ctx_t *prev, uthread_ctx_t *next)*/	
 	/* saves first parameter*/
+	/* Yield from running go back to queue */
+	queue_dequeue(main_queue, &main_);
+	queue_enqueue(main_queue, main_);
+	struct uthread* main_t = (struct uthread*)main_;
+	printf("main:%d\n",main_t->tid);
+	/* get of the ready list -> running */
+	queue_dequeue(queue, &data);
+	queue_enqueue(running, data);
+
 	struct uthread* thread = (struct uthread*)data;
-	uthread_ctx_switch( &main_context, &thread->context);
+	thread->state = 1;
+	
+	printf("my tid:%d\n",thread->tid);
+	/* main yield to thread1 */
+	my_tid = thread->tid;
+	uthread_ctx_switch( main_t->context, thread->context);
+
 	/* TODO Phase 3 */
+	return 0;
 }
 

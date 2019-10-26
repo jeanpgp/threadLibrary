@@ -58,7 +58,6 @@ int queue_enqueue(queue_t queue, void *data)
 	queue->tail = new_node;
 	queue->length = queue->length + 1;
 	return 0;
-	
 }
 
 int queue_dequeue(queue_t queue, void **data)
@@ -121,13 +120,14 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 	/* TODO Phase 1 */
 	struct node* curr_node = queue->head;
 	int stop = 0;
+
 	if (queue == NULL || func == NULL)
 	{
 		return -1;
 	}
 	while(curr_node != NULL )
 	{/* while not the end */
-
+		printf("iterate\n");
 		stop = func(curr_node->data, arg);
 		/* End Prematurely */
 		if (stop == 1 )
@@ -136,10 +136,11 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 				*data = curr_node->data;
 				return 0;
 			}
+			return -1;
 		}
 		curr_node = curr_node->next;
 	}
-	return 0;
+	return -1;
 }
 
 int queue_length(queue_t queue)
