@@ -15,11 +15,6 @@
 
 #define STACK_SIZE 32768
 
-queue_t queue;
-queue_t running;
-queue_t main_queue;
-queue_t zombie;
-
 struct uthread{
 	uthread_t tid;
 	uthread_ctx_t* context;
@@ -28,6 +23,10 @@ struct uthread{
 	int state;
 };
 
+queue_t queue;
+queue_t zombie;
+uthread_t* running_t;
+uthread_t* main_t;
 uthread_t tid_idx = 0;
 uthread_t my_tid = 0;
 
@@ -40,28 +39,21 @@ int find_tid(void *data, void *arg)
 	return 0;
 }
 
-/* TODO Phase 2 */
-
 void uthread_yield(void)
 {
-	/* TODO Phase 2 */
-	void *data;
-	void *curr;
+	/* Init next to store next thread to be running, and curr to running thread */
+	void *next;
+	void *curr = running_t;
 	
-	queue_dequeue(queue, &data); //pop the next in line;
-	queue_enqueue(running, data);
+	/* Pop next in line and set to running thread */
+	queue_dequeue(queue, &next);
+	running_t = (struct uthread*)next;
 
-	/* Dequeue running */	
-	queue_dequeue(running, &curr); 
-	queue_enqueue(queue, curr); 
-	
-	struct uthread* curr_t = (struct uthread*)curr;
-	struct uthread* thread = (struct uthread*)data;
-	my_tid = thread->tid;
-	uthread_ctx_switch( curr_t->context, thread->context);
+	/* Switch context between curr and next */
+	my_tid = next->tid;
+	uthread_ctx_switch(curr->context, next->context);
 	
 }
-
 
 uthread_t uthread_self(void)
 {
@@ -73,9 +65,8 @@ uthread_t uthread_self(void)
 int create_main()
 {
 	queue = queue_create();
-	running = queue_create();
-	main_queue = queue_create();
 	zombie = queue_create();
+
 	//initializing main
 	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
@@ -88,7 +79,7 @@ int create_main()
 	thread->stack = uthread_ctx_alloc_stack();
 	thread->state = 1; /* Running */
 	tid_idx++;
-	queue_enqueue(main_queue, thread);
+	main_t = thread;
 	return 0;
 }
 
@@ -140,13 +131,10 @@ int uthread_join(uthread_t tid, int *retval)
 	/* Yield from running go back to queue */
 	while (1)
 	{
-		queue_dequeue(main_queue, &main_);
-		queue_enqueue(main_queue, main_);
-		struct uthread* main_t = (struct uthread*)main_;
 		printf("main:%d\n",main_t->tid);
 		/* get of the ready list -> running */
 		queue_dequeue(queue, &data);
-		queue_enqueue(running, data);
+		running_t = data;
 
 		struct uthread* thread = (struct uthread*)data;
 		thread->state = 1;
