@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <uthread.h>
 #include <queue.h>
+#include <uthread.h>
+
 
 void test_create(void)
 {

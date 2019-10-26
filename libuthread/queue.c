@@ -16,7 +16,7 @@ struct queue {
 struct node {
 	struct node *next;
 	struct node *prev;
-	int *data;
+	void *data;
 };
 
 
@@ -115,7 +115,7 @@ int queue_delete(queue_t queue, void *data)
  */
 
 
-
+/*@data: (Optional) Address of data pointer where an item can be received*/
 int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 {
 	/* TODO Phase 1 */

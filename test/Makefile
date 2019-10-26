@@ -3,7 +3,8 @@
 #  You shouldn't have to touch the rest (but you can read it to understand!)
 programs := \
 	test_queue.x\
-	uthread_hello.x
+	uthread_hello.x\
+	uthread_yield.x
 
 
 # User-level thread library
