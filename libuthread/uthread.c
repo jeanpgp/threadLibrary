@@ -14,7 +14,7 @@
 #include "uthread.h"
 
 #define STACK_SIZE 32768
-typdef struct _uthread_t uthread_t;
+typedef struct _uthread_t uthread_t;
 
 struct uthread{
 	uthread_t tid;
