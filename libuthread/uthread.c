@@ -51,7 +51,8 @@ void uthread_yield(void)
 
 	/* Switch context between curr and next */
 	my_tid = next->tid;
-	uthread_ctx_switch(curr->context, next->context);
+	uthread_ctx_switch(((struct uthread*)curr)->context, 
+	((struct uthread*)next)->context);
 	
 }
 
