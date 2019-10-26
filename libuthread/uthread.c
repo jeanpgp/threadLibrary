@@ -14,6 +14,7 @@
 #include "uthread.h"
 
 #define STACK_SIZE 32768
+typdef struct _uthread_t uthread_t;
 
 struct uthread{
 	uthread_t tid;
@@ -50,7 +51,7 @@ void uthread_yield(void)
 	running_t = (struct uthread*)next;
 
 	/* Switch context between curr and next */
-	my_tid = next->tid;
+	my_tid = (*next)->tid;
 	uthread_ctx_switch(curr->context, next->context);
 	
 }
@@ -131,7 +132,7 @@ int uthread_join(uthread_t tid, int *retval)
 	/* Yield from running go back to queue */
 	while (1)
 	{
-		printf("main:%d\n",main_t->tid);
+		printf("main:%d\n",(*main_t)->tid);
 		/* get of the ready list -> running */
 		queue_dequeue(queue, &data);
 		running_t = data;
@@ -140,7 +141,7 @@ int uthread_join(uthread_t tid, int *retval)
 		thread->state = 1;
 		/* main yield to thread1 */
 		my_tid = thread->tid;
-		uthread_ctx_switch( main_t->context, thread->context);
+		uthread_ctx_switch((*main_t)->context, thread->context);
 	}
 	/* TODO Phase 3 */
 	return 0;
