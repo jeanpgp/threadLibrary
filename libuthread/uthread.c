@@ -18,6 +18,7 @@
 queue_t queue;
 queue_t running;
 queue_t main_queue;
+queue_t zombie;
 
 struct uthread{
 	uthread_t tid;
@@ -62,19 +63,6 @@ void uthread_yield(void)
 }
 
 
-/*
-int find_self(void *data, void *arg)
-{
-	struct uthread* thread = (struct uthread*)data;
-	/*find the running thread*//*
-	if (thread->state == 1 ){
-		printf("find self\n");
-		return 1;
-	}
-	return 0;
-}
-*/
-
 uthread_t uthread_self(void)
 {
 	/* TODO Phase 2 */
@@ -87,6 +75,7 @@ int create_main()
 	queue = queue_create();
 	running = queue_create();
 	main_queue = queue_create();
+	zombie = queue_create();
 	//initializing main
 	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
@@ -131,6 +120,8 @@ int uthread_create(uthread_func_t func, void *arg)
 void uthread_exit(int retval)
 {
 	/* TODO Phase 2 */
+	uthread_yield();
+	
 }
 
 
@@ -147,20 +138,22 @@ int uthread_join(uthread_t tid, int *retval)
 	/* uthread_ctx_switch(uthread_ctx_t *prev, uthread_ctx_t *next)*/	
 	/* saves first parameter*/
 	/* Yield from running go back to queue */
-	queue_dequeue(main_queue, &main_);
-	queue_enqueue(main_queue, main_);
-	struct uthread* main_t = (struct uthread*)main_;
-	printf("main:%d\n",main_t->tid);
-	/* get of the ready list -> running */
-	queue_dequeue(queue, &data);
-	queue_enqueue(running, data);
+	while (1)
+	{
+		queue_dequeue(main_queue, &main_);
+		queue_enqueue(main_queue, main_);
+		struct uthread* main_t = (struct uthread*)main_;
+		printf("main:%d\n",main_t->tid);
+		/* get of the ready list -> running */
+		queue_dequeue(queue, &data);
+		queue_enqueue(running, data);
 
-	struct uthread* thread = (struct uthread*)data;
-	thread->state = 1;
-	/* main yield to thread1 */
-	my_tid = thread->tid;
-	uthread_ctx_switch( main_t->context, thread->context);
-
+		struct uthread* thread = (struct uthread*)data;
+		thread->state = 1;
+		/* main yield to thread1 */
+		my_tid = thread->tid;
+		uthread_ctx_switch( main_t->context, thread->context);
+	}
 	/* TODO Phase 3 */
 	return 0;
 }
