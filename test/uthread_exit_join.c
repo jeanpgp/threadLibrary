@@ -46,6 +46,6 @@ int thread1(void* arg)
 int main(void)
 {
 	uthread_join(uthread_create(thread1, NULL), NULL);
-	print("thread%d\n", uthread_self());
+	printf("thread%d\n", uthread_self());
 	return 0;
 }
