@@ -197,8 +197,8 @@ int uthread_join(uthread_t tid, int *retval)
 	}
 	
 	/* Set parent thread state to blocked */
-	parent->state = 1;
 	struct uthread* parent_t = (struct uthread*)parent;
+	parent_t->state = 1;
 	int is_child_done = 0;
 	
 	while(!is_child_done) 
