@@ -146,6 +146,18 @@ void uthread_exit(int* retval)
 	run_next_thread(&curr);
 }
 
+int check_thread_done(uthread_t tid)
+{
+	int done = 1;
+	void* data;
+	for(int i = 0; i < queue_length(queue); i++)
+	{
+		queue_dequeue(queue, &data);
+		if (((struct uthread*)data)->tid == tid) done = 0;
+		queue_enqueue(queue,data);
+	}
+	return done;
+}
 
 /*Context Switch*/
 int uthread_join(uthread_t tid, int *retval)
