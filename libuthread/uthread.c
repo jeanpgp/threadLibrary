@@ -37,8 +37,6 @@ void run_next_thread(void** curr)
 	
 	queue_dequeue(queue, &data); //pop the next in line;
 	queue_enqueue(running, data);
-
-	queue_enqueue(queue, *curr); 
 	
 	struct uthread* curr_t = (struct uthread*)(*curr);
 	struct uthread* thread = (struct uthread*)data;
@@ -138,9 +136,10 @@ void uthread_exit(int* retval)
 	void* curr;
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
+	curr_t->state = 3;
 	
 	/* Store thread in zombies */
-	queue_enqueue(zombies, curr);
+	queue_enqueue(zombies, (void*)curr_t);
 	
 	/* Run next thread */
 	run_next_thread(&curr);
