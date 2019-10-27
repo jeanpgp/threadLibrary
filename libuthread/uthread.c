@@ -194,6 +194,15 @@ int uthread_join(uthread_t tid, int *retval)
 	
 	/* Run other threads until the child finishes and parent can begin */
 	while(!is_child_done) {
+		
+	/* Get previous running process */
+	if(queue_length(running) != 0) {
+		queue_dequeue(running, &prev);
+	} else {
+		queue_dequeue(main_queue, &prev);
+		queue_enqueue(main_queue, prev);
+	}
+	
 		/* Get next ready thread*/
 		while (1) {
 			queue_dequeue(queue, &child);
@@ -209,13 +218,14 @@ int uthread_join(uthread_t tid, int *retval)
 		my_tid = child_t->tid;
 		
 		/* Switch context to new */
-		uthread_ctx_switch(parent_t->context, child_t->context);
+		uthread_ctx_switch(((struct uthread*)prev)->context, child_t->context);
 		
 		/* Check if child has finished executing */
 		is_child_done = check_thread_done(tid);
 	}
 	// TODO: get retval and free memory of child
-	queue_enqueue(queue, parent);
+	parent_t->state = 0;
+	queue_enqueue(queue, (void*)parent_t);
 	
 	return 0;
 }
