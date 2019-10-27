@@ -202,16 +202,10 @@ int uthread_join(uthread_t tid, int *retval)
 			} else break;
 		}
 
-		/* Change child state to running */
+		/* Run child */
 		struct uthread* child_t = (struct uthread*)child;
 		child_t->state = 2;
-		
-		/* remove current running and set child to running */
-		if (queue_length(running) > 0) {
-			queue_dequeue(running, &prev);
-			queue_enqueue(queue, prev);
-		}
-		queue_enqueue(running, child);
+		queue_enqueue(running, (void*)child_t);
 		my_tid = child_t->tid;
 		
 		/* Switch context to new */
