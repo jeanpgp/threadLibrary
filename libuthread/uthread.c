@@ -72,8 +72,11 @@ void uthread_yield(void)
 			} else break;
 		}
 	
-	queue_dequeue(running, &curr);
-	
+	if (queue_length(running) != 0) {
+		queue_dequeue(running, &curr);
+	} else {
+		queue_dequeue(main_queue, &curr);
+	}
 	struct uthread* curr_t = (struct uthread*)curr;
 	struct uthread* next_t = (struct uthread*)next;
 	
@@ -84,10 +87,8 @@ void uthread_yield(void)
 	next_t->state = 2;
 	
 	queue_enqueue(running, (void*)next_t);
-	queue_enqueue(queue, (void*)curr_t); 
-	
-	
-	
+	if (curr_t->tid != 0) { queue_enqueue(queue, (void*)curr_t); }
+	else { queue_enqueue(main_queue, (void*)curr_t); }
 }
 
 uthread_t uthread_self(void)
