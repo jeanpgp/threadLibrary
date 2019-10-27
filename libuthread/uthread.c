@@ -151,27 +151,27 @@ void uthread_exit(int* retval)
 int uthread_join(uthread_t tid, int *retval)
 {
 	/* TODO Phase 2 */
-	/*
-	void *data;
-	void *main_;
-	while (1)
-	{
-		queue_dequeue(main_queue, &main_);
-		queue_enqueue(main_queue, main_);
-		struct uthread* main_t = (struct uthread*)main_;
-		printf("main:%d\n",main_t->tid);
+	
+	// void *data;
+	// void *main_;
+	// while (1)
+	// {
+		// queue_dequeue(main_queue, &main_);
+		// queue_enqueue(main_queue, main_);
+		// struct uthread* main_t = (struct uthread*)main_;
+		// printf("main:%d\n",main_t->tid);
 		
-		/* get of the ready list -> running */
-		queue_dequeue(queue, &data);
-		queue_enqueue(running, data);
+		// /* get of the ready list -> running */
+		// queue_dequeue(queue, &data);
+		// queue_enqueue(running, data);
 
-		struct uthread* thread = (struct uthread*)data;
-		thread->state = 1;
-		/* main yield to thread1 */
-		my_tid = thread->tid;
-		uthread_ctx_switch( main_t->context, thread->context);
-	}
-	*/
+		// struct uthread* thread = (struct uthread*)data;
+		// thread->state = 1;
+		// /* main yield to thread1 */
+		// my_tid = thread->tid;
+		// uthread_ctx_switch( main_t->context, thread->context);
+	// }
+	
 	/* TODO Phase 3 */
 	/* What code should do:
 	 * Get all info about current running thread, that is the parent
@@ -199,9 +199,9 @@ int uthread_join(uthread_t tid, int *retval)
 	/* Set parent thread state to blocked */
 	parent->state = 1;
 	struct uthread* parent_t = (struct uthread*)parent;
-	bool child_done = 0;
+	int is_child_done = 0;
 	
-	while(!child_done) 
+	while(!is_child_done) 
 	{
 		queue_dequeue(queue, &child);
 		queue_enqueue(running, child);
