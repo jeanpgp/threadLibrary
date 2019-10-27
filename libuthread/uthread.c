@@ -137,7 +137,7 @@ void uthread_exit(int* retval)
 	
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
-	curr->state = 3;
+	curr_t->state = 3;
 	
 	run_next_thread(&curr);
 }
