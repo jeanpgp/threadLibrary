@@ -193,11 +193,11 @@ int uthread_join(uthread_t tid, int *retval)
 	int is_child_done = 0;
 	
 	/* Run other threads until the child finishes and parent can begin */
-	while(!is_child_done) 
+	while(!is_child_done) {
 		/* Get next ready thread*/
 		while (1) {
 			queue_dequeue(queue, &child);
-			if (((struct uthread*)child)->status != 0) {
+			if (((struct uthread*)child)->state != 0) {
 				queue_enqueue(queue, child);
 			} else break;
 		}
@@ -207,7 +207,7 @@ int uthread_join(uthread_t tid, int *retval)
 		child_t->state = 2;
 		
 		/* remove current running and set child to running */
-		if (queue_length(running) > 0) queue_dequeue(running, &prev);
+		if (queue_length(running) > 0) {queue_dequeue(running, &prev)};
 		queue_enqueue(running, child);
 		my_tid = child_t->tid;
 		
