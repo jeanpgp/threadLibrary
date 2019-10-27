@@ -64,24 +64,26 @@ void uthread_yield(void)
 	/* No other process to run, so keep running current process */
 	if(queue_length(queue) == 0) return;
 	
-		/* Get next ready thread*/
-		while (1) {
-			queue_dequeue(queue, &next);
-			if (((struct uthread*)next)->state != 0) {
-				queue_enqueue(queue, next);
-			} else break;
-		}
+	/* Get next ready thread*/
+	while (1) {
+		queue_dequeue(queue, &next);
+		if (((struct uthread*)next)->state != 0) {
+			queue_enqueue(queue, next);
+		} else break;
+	}
 	
 	if (queue_length(running) != 0) {
 		queue_dequeue(running, &curr);
 	} else {
 		queue_dequeue(main_queue, &curr);
 	}
+	
+	printf("here");
 	struct uthread* curr_t = (struct uthread*)curr;
 	struct uthread* next_t = (struct uthread*)next;
 	
 	my_tid = next_t->tid;
-	uthread_ctx_switch( curr_t->context, next_t->context);
+	uthread_ctx_switch(curr_t->context, next_t->context);
 	
 	curr_t->state = 0;
 	next_t->state = 2;
@@ -181,11 +183,10 @@ int uthread_join(uthread_t tid, int *retval)
 	/* What code should do:
 	 * Get all info about current running thread, that is the parent
 	 * set parent state to blocked (1)
-	 * set child to running
 	 * loop where all threads in queue run if they have ready status
 	 * break loop when child is not in queue or is in zombies
 	 * if child is in zombies, retrieve return value
-	 * then set status to ready (0)
+	 * then set parent status to ready (0)
 	 */
 
 	/* Return error if thread tries to join with main */
