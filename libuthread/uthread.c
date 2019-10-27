@@ -208,7 +208,7 @@ int uthread_join(uthread_t tid, int *retval)
 		
 		/* remove current running and set child to running */
 		if (queue_length(running) > 0) {
-			queue_dequeue(running, &prev)
+			queue_dequeue(running, &prev);
 			queue_enqueue(queue, prev);
 		}
 		queue_enqueue(running, child);
