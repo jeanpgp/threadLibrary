@@ -62,7 +62,7 @@ void uthread_yield(void);
  *
  * This function shall never return.
  */
-void uthread_exit(int retval);
+void uthread_exit(int* retval);
 
 /*
  * uthread_join - Join a thread

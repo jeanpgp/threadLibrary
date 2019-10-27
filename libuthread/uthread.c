@@ -18,7 +18,6 @@
 queue_t queue;
 queue_t running;
 queue_t main_queue;
-queue_t zombie;
 
 struct uthread{
 	uthread_t tid;
@@ -30,6 +29,22 @@ struct uthread{
 
 uthread_t tid_idx = 0;
 uthread_t my_tid = 0;
+
+void run_next_thread(void** curr) 
+{
+	void *data;
+	int state = 3;
+	
+	queue_dequeue(queue, &data); //pop the next in line;
+	queue_enqueue(running, data);
+
+	queue_enqueue(queue, *curr); 
+	
+	struct uthread* curr_t = (struct uthread*)(*curr);
+	struct uthread* thread = (struct uthread*)data;
+	my_tid = thread->tid;
+	uthread_ctx_switch( curr_t->context, thread->context);;
+}
 
 int find_tid(void *data, void *arg)
 {
@@ -75,7 +90,6 @@ int create_main()
 	queue = queue_create();
 	running = queue_create();
 	main_queue = queue_create();
-	zombie = queue_create();
 	//initializing main
 	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
@@ -117,11 +131,15 @@ int uthread_create(uthread_func_t func, void *arg)
 	return thread->tid;
 }
 
-void uthread_exit(int retval)
+void uthread_exit(int* retval)
 {
-	/* TODO Phase 2 */
-	uthread_yield();
+	void* curr;
 	
+	queue_dequeue(running, &curr);
+	struct uthread* curr_t = (struct uthread*)curr;
+	curr->state = 3;
+	
+	run_next_thread(&curr);
 }
 
 
