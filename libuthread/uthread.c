@@ -224,7 +224,10 @@ int uthread_join(uthread_t tid, int *retval)
 		my_tid = child_t->tid;
 		uthread_ctx_switch(parent_t->context, child_t->context);
 		
+		is_child_done = check_thread_done(tid);
 	}
+	
+	queue_enqueue(queue, parent);
 	
 	return 0;
 }
