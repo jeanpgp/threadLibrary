@@ -58,20 +58,35 @@ int find_tid(void *data, void *arg)
 void uthread_yield(void)
 {
 	/* TODO Phase 2 */
-	void *data;
+	void *next;
 	void *curr;
 	
-	queue_dequeue(queue, &data); //pop the next in line;
-	queue_enqueue(running, data);
-
-	/* Dequeue running */	
-	queue_dequeue(running, &curr); 
-	queue_enqueue(queue, curr); 
+	/* No other process to run, so keep running current process */
+	if(queue_length(queue) == 0) return;
+	
+		/* Get next ready thread*/
+		while (1) {
+			queue_dequeue(queue, &next);
+			if (((struct uthread*)next)->state != 0) {
+				queue_enqueue(queue, next);
+			} else break;
+		}
+	
+	queue_dequeue(running, &curr);
 	
 	struct uthread* curr_t = (struct uthread*)curr;
-	struct uthread* thread = (struct uthread*)data;
-	my_tid = thread->tid;
-	uthread_ctx_switch( curr_t->context, thread->context);
+	struct uthread* next_t = (struct uthread*)next;
+	
+	my_tid = next_t->tid;
+	uthread_ctx_switch( curr_t->context, next_t->context);
+	
+	curr_t->state = 0;
+	next_t->state = 2;
+	
+	queue_enqueue(running, (void*)next_t);
+	queue_enqueue(queue, (void*)curr_t); 
+	
+	
 	
 }
 
@@ -198,6 +213,9 @@ int uthread_join(uthread_t tid, int *retval)
 	/* Get previous running process */
 	if(queue_length(running) != 0) {
 		queue_dequeue(running, &prev);
+		struct uthread* prev_t = (struct uthread*) prev;
+		prev_t->state = 0;
+		queue_enqueue(main_queue, (void*)prev_t);
 	} else {
 		queue_dequeue(main_queue, &prev);
 		queue_enqueue(main_queue, prev);
