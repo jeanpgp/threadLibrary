@@ -81,4 +81,6 @@ void uthread_exit(int* retval);
  */
 int uthread_join(uthread_t tid, int *retval);
 
+/* Check if a thread with tid is completed, ie not in queue */
+int check_thread_done(uthread_t tid);
 #endif /* _THREAD_H */
