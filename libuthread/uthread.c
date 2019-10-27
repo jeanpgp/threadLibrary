@@ -24,7 +24,7 @@ struct uthread{
 	uthread_t tid;
 	uthread_ctx_t* context;
 	char* stack;
-	/* 0 ready, 1 blocked */
+	/* 0 ready, 1 blocked, 2 running, 3 zombie */
 	int state;
 };
 
@@ -162,28 +162,6 @@ int check_thread_done(uthread_t tid)
 /*Context Switch*/
 int uthread_join(uthread_t tid, int *retval)
 {
-	/* TODO Phase 2 */
-	
-	// void *data;
-	// void *main_;
-	// while (1)
-	// {
-		// queue_dequeue(main_queue, &main_);
-		// queue_enqueue(main_queue, main_);
-		// struct uthread* main_t = (struct uthread*)main_;
-		// printf("main:%d\n",main_t->tid);
-		
-		// /* get of the ready list -> running */
-		// queue_dequeue(queue, &data);
-		// queue_enqueue(running, data);
-
-		// struct uthread* thread = (struct uthread*)data;
-		// thread->state = 1;
-		// /* main yield to thread1 */
-		// my_tid = thread->tid;
-		// uthread_ctx_switch( main_t->context, thread->context);
-	// }
-	
 	/* TODO Phase 3 */
 	/* What code should do:
 	 * Get all info about current running thread, that is the parent
@@ -194,11 +172,12 @@ int uthread_join(uthread_t tid, int *retval)
 	 * if child is in zombies, retrieve return value
 	 * then set status to ready (0)
 	 */
-	 
+	/* Return error if thread tries to join with main */
 	if (tid == 0) return -1;
 	 
 	void* parent;
 	void* child;
+	void* prev = NULL;
 	
 	/* Set parent to parent thread, either running or main */
 	if(queue_length(running) != 0) {
@@ -213,20 +192,38 @@ int uthread_join(uthread_t tid, int *retval)
 	parent_t->state = 1;
 	int is_child_done = 0;
 	
+	/* Run other threads until the child finishes and parent can begin */
 	while(!is_child_done) 
-	{
-		queue_dequeue(queue, &child);
-		queue_enqueue(running, child);
+		/* Get next ready thread*/
+		while (1) {
+			queue_dequeue(queue, &child);
+			if (((struct uthread*)child)->status != 0) {
+				queue_enqueue(queue, child);
+			} else break;
+		}
 
+		/* Change child state to running */
 		struct uthread* child_t = (struct uthread*)child;
-		child_t->state = 0;
-		/* main yield to thread1 */
-		my_tid = child_t->tid;
-		uthread_ctx_switch(parent_t->context, child_t->context);
+		child_t->state = 2;
 		
+		/* remove current running and set child to running */
+		if (queue_length(running) > 0) queue_dequeue(running, &prev);
+		queue_enqueue(running, child);
+		my_tid = child_t->tid;
+		
+		/* Switch context to correct context
+		 * Old context will be parent if no previous running process
+		 */
+		if(prev == NULL) {
+			uthread_ctx_switch(parent_t->context, child_t->context);
+		} else {
+			uthread_ctx_switch(((struct uthread*)prev)->context, child_t->context);
+		}
+		
+		/* Check if child has finished executing */
 		is_child_done = check_thread_done(tid);
 	}
-	
+	// TODO: get retval and free memory of child
 	queue_enqueue(queue, parent);
 	
 	return 0;
