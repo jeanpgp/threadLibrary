@@ -171,6 +171,7 @@ int uthread_join(uthread_t tid, int *retval)
 	 * if child is in zombies, retrieve return value
 	 * then set status to ready (0)
 	 */
+
 	/* Return error if thread tries to join with main */
 	if (tid == 0) return -1;
 	 
@@ -206,18 +207,15 @@ int uthread_join(uthread_t tid, int *retval)
 		child_t->state = 2;
 		
 		/* remove current running and set child to running */
-		if (queue_length(running) > 0) queue_dequeue(running, &prev);
+		if (queue_length(running) > 0) {
+			queue_dequeue(running, &prev)
+			queue_enqueue(queue, prev);
+		}
 		queue_enqueue(running, child);
 		my_tid = child_t->tid;
 		
-		/* Switch context to correct context
-		 * Old context will be parent if no previous running process
-		 */
-		if(prev == NULL) {
-			uthread_ctx_switch(parent_t->context, child_t->context);
-		} else {
-			uthread_ctx_switch(((struct uthread*)prev)->context, child_t->context);
-		}
+		/* Switch context to new */
+		uthread_ctx_switch(parent_t->context, child_t->context);
 		
 		/* Check if child has finished executing */
 		is_child_done = check_thread_done(tid);
