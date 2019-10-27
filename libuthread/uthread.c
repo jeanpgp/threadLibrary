@@ -18,12 +18,13 @@
 queue_t queue;
 queue_t running;
 queue_t main_queue;
+queue_t zombies;
 
 struct uthread{
 	uthread_t tid;
 	uthread_ctx_t* context;
 	char* stack;
-	/* 0 ready, 1 running, 2 blocked, 3 zombie */
+	/* 0 ready, 1 blocked */
 	int state;
 };
 
@@ -33,7 +34,6 @@ uthread_t my_tid = 0;
 void run_next_thread(void** curr) 
 {
 	void *data;
-	int state = 3;
 	
 	queue_dequeue(queue, &data); //pop the next in line;
 	queue_enqueue(running, data);
@@ -90,6 +90,7 @@ int create_main()
 	queue = queue_create();
 	running = queue_create();
 	main_queue = queue_create();
+	zombies = queue_create();
 	//initializing main
 	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
@@ -133,12 +134,16 @@ int uthread_create(uthread_func_t func, void *arg)
 
 void uthread_exit(int* retval)
 {
+	/* Pull thread out of running and store */
 	void* curr;
-	
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
 	curr_t->state = 3;
 	
+	/* Store thread in zombies */
+	queue_enqueue(zombies, curr);
+	
+	/* Run next thread */
 	run_next_thread(&curr);
 }
 
