@@ -20,6 +20,8 @@ int thread3(void* arg)
 	printf("Arrive thread3 Hi\n");
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
+	int retval = 0;
+	uthread_exit(&retval);
 	return 0;
 }
 
@@ -36,8 +38,8 @@ int thread1(void* arg)
 {
 	uthread_create(thread2, NULL);
 	printf("Arrive thread1 Hi\n");
-	int* retval = NULL;
-	uthread_exit(retval);
+	int retval = 0;
+	uthread_exit(&retval);
 	printf("thread%d\n", uthread_self());
 	uthread_yield();
 	return 0;
