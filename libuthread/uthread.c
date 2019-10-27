@@ -77,7 +77,6 @@ void uthread_yield(void)
 	
 }
 
-
 uthread_t uthread_self(void)
 {
 	/* TODO Phase 2 */
@@ -132,13 +131,13 @@ int uthread_create(uthread_func_t func, void *arg)
 	return thread->tid;
 }
 
+//FIXME: retrieve return value
 void uthread_exit(int* retval)
 {
 	/* Pull thread out of running and store */
 	void* curr;
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
-	curr_t->state = 3;
 	
 	/* Store thread in zombies */
 	queue_enqueue(zombies, curr);
@@ -152,21 +151,16 @@ void uthread_exit(int* retval)
 int uthread_join(uthread_t tid, int *retval)
 {
 	/* TODO Phase 2 */
+	/*
 	void *data;
 	void *main_;
-	uthread_t main_tid = 0;
-	uthread_ctx_t main_context;
-	/*(queue_t queue, queue_func_t func, void *arg, void **data)*/
-	/* Get data which is the struct of next */
-	/* uthread_ctx_switch(uthread_ctx_t *prev, uthread_ctx_t *next)*/	
-	/* saves first parameter*/
-	/* Yield from running go back to queue */
 	while (1)
 	{
 		queue_dequeue(main_queue, &main_);
 		queue_enqueue(main_queue, main_);
 		struct uthread* main_t = (struct uthread*)main_;
 		printf("main:%d\n",main_t->tid);
+		
 		/* get of the ready list -> running */
 		queue_dequeue(queue, &data);
 		queue_enqueue(running, data);
@@ -177,6 +171,48 @@ int uthread_join(uthread_t tid, int *retval)
 		my_tid = thread->tid;
 		uthread_ctx_switch( main_t->context, thread->context);
 	}
+	*/
 	/* TODO Phase 3 */
+	/* What code should do:
+	 * Get all info about current running thread, that is the parent
+	 * set parent state to blocked (1)
+	 * set child to running
+	 * loop where all threads in queue run if they have ready status
+	 * break loop when child is not in queue or is in zombies
+	 * if child is in zombies, retrieve return value
+	 * then set status to ready (0)
+	 */
+	 
+	if (tid == 0) return -1;
+	 
+	void* parent;
+	void* child;
+	
+	/* Set parent to parent thread, either running or main */
+	if(queue_length(running) != 0) {
+		queue_dequeue(running, &parent);
+	} else {
+		queue_dequeue(main_queue, &parent);
+		queue_enqueue(main_queue, parent);
+	}
+	
+	/* Set parent thread state to blocked */
+	parent->state = 1;
+	struct uthread* parent_t = (struct uthread*)parent;
+	bool child_done = 0;
+	
+	while(!child_done) 
+	{
+		queue_dequeue(queue, &child);
+		queue_enqueue(running, child);
+
+		struct uthread* child_t = (struct uthread*)child;
+		child_t->state = 0;
+		/* main yield to thread1 */
+		my_tid = child_t->tid;
+		uthread_ctx_switch(parent_t->context, child_t->context);
+		
+	}
+	
 	return 0;
 }
