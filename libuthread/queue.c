@@ -143,7 +143,7 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 	}
 	while(curr_node != NULL )
 	{/* while not the end */
-		printf("iterate\n");
+		//printf("iterate\n");
 		stop = func(curr_node->data, arg);
 		/* End Prematurely */
 		if (stop == 1 )
@@ -156,6 +156,7 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 		}
 		curr_node = curr_node->next;
 	}
+	*data = NULL;
 	return -1;
 }
 

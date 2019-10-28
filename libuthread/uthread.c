@@ -27,7 +27,7 @@ struct uthread{
 	char* stack;
 	/* 0 ready, 1 blocked, 2 running, 3 zombie */
 	int state;
-	uthread_t block_child;
+	uthread_t tid_child;
 	int retval;
 };
 
@@ -59,6 +59,16 @@ int find_tid(void *data, void *arg)
 	return 0;
 }
 
+int block_tid(void *data, void *arg)
+{
+	struct uthread* thread = (struct uthread*)data;
+	if (thread->tid_child == *(uthread_t*)arg){
+		//printf("Match\n");
+		return 1;
+	}
+	return 0;
+}
+
 /* TODO Phase 2 */
 
 void uthread_yield(void)
@@ -67,15 +77,14 @@ void uthread_yield(void)
 	void* data;
 	void* next;
 	void* curr;
-	
+	//printf("yield\n");
 	/* No other process to run, so keep running current process */
 	if(queue_length(queue) == 0){
-		printf("length = 0\n");
+		//printf("length = 0\n");
 		return;
 	}
 	
 	/* Get next ready thread*/
-
 	queue_dequeue(queue, &next);
 
 	
@@ -94,7 +103,8 @@ void uthread_yield(void)
 	queue_enqueue(running, (void*)next_t);
 	if (curr_t->tid != 0) { queue_enqueue(queue, (void*)curr_t); }
 	else { queue_enqueue(main_queue, (void*)curr_t); }
-
+	//printf("curr_t tid %d\n",curr_t->tid);
+	//printf("next tid %d\n",next_t->tid);
 	uthread_ctx_switch( curr_t->context, next_t->context);
 
 }
@@ -148,6 +158,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	thread->context = uctx;
 	thread->stack = stack;
 	thread->state = 0; /* Ready */
+	thread->tid_child = 0;
 	tid_idx++;
 	queue_enqueue(queue, thread);
 	return thread->tid;
@@ -165,15 +176,17 @@ void uthread_exit(int* retval)
 	
 	/* Store thread in zombies */
 	queue_enqueue(zombies, (void*)curr_t);
-	
+	//printf("%d\n",retval);
 	/* check if it is blocking by parent */	
-	queue_iterate(blocked, find_tid , &curr_t->tid, &parent);	
+	queue_iterate(blocked, block_tid , &curr_t->tid, &parent);
+
 	if (parent == NULL)
 	{
-		printf("don't have parent\n");
+		//printf("don't have parent\n");
 	}
 	else{
-		printf("have parent\n");
+		struct uthread* parent_t = (struct uthread*)parent;
+		queue_enqueue(queue, parent_t);
 	}
 	/* Run next thread */
 	run_next_thread(&curr);
@@ -222,10 +235,11 @@ int uthread_join(uthread_t tid, int *retval)
 	
 	/* Set parent thread state to blocked */
 	struct uthread* parent_t = (struct uthread*)parent;
+	queue_enqueue(blocked, parent);
 	parent_t->state = 1;
-	parent_t->block_child = tid;
+	parent_t->tid_child = tid;
 	int is_child_done = 0;
-	int is_first_time = 1;
+
 	
 	/* Check if child has finished executing */
 	is_child_done = check_thread_done(tid);		
@@ -233,9 +247,9 @@ int uthread_join(uthread_t tid, int *retval)
 	/* Run other threads until the child finishes and parent can begin */
 	if(!is_child_done) {
 
-		/* Get next ready thread*/
+		/* Get next ready thread */
 		queue_dequeue(queue, &next);
-		queue_enqueue(queue, next);
+
 
 		/* Run child */
 		struct uthread* next_t = (struct uthread*)next;
@@ -246,7 +260,6 @@ int uthread_join(uthread_t tid, int *retval)
 		uthread_ctx_switch(parent_t->context, next_t->context);
 	}
 	// TODO: get retval and free memory of child
-	
 	parent_t->state = 0;
 	queue_enqueue(queue, (void*)parent_t);
 	
