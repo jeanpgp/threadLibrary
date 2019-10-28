@@ -37,8 +37,9 @@ int thread1(void* arg)
 	uthread_create(thread2, NULL);
 	printf("Arrive thread1 Hi\n");
 	uthread_yield();
-	printf("thread%d\n", uthread_self());
+	printf("thread qaq%d\n", uthread_self());
 	uthread_yield();
+	printf("thread%d\n", uthread_self());
 	return 0;
 }
 

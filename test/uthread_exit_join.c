@@ -47,7 +47,9 @@ int thread1(void* arg)
 
 int main(void)
 {
-	uthread_join(uthread_create(thread1, NULL), NULL);
+	int* retval = NULL;
+	uthread_join(uthread_create(thread1, NULL), retval);
+	printf("retval thread1: %d", *retval);
 	printf("thread%d\n", uthread_self());
 	return 0;
 }
