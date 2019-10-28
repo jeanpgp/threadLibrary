@@ -164,14 +164,14 @@ int uthread_create(uthread_func_t func, void *arg)
 	return thread->tid;
 }
 
-//FIXME: retrieve return value
 void uthread_exit(int* retval)
-{
+{	
 	/* Pull thread out of running and store */
 	void* curr;
 	void* parent;
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
+	curr_t->retval = retval;
 	curr_t->state = 3;
 	
 	/* Store thread in zombies */
@@ -196,12 +196,19 @@ int check_thread_done(uthread_t tid)
 {
 	int done = 1;
 	void* data;
-	for(int i = 0; i < queue_length(queue); i++)
-	{
+	
+	for(int i = 0; i < queue_length(queue); i++) {
 		queue_dequeue(queue, &data);
 		if (((struct uthread*)data)->tid == tid) done = 0;
 		queue_enqueue(queue,data);
 	}
+	
+	for(int i = 0; i < queue_length(blocked); i++) {
+		queue_dequeue(blocked, &data);
+		if (((struct uthread*)data)->tid == tid) done = 0;
+		queue_enqueue(blocked,data);
+	}
+	
 	return done;
 }
 
