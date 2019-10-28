@@ -209,8 +209,8 @@ int uthread_join(uthread_t tid, int *retval)
 	if (tid == 0) return -1;
 	 
 	void* parent;
-	void* child;
-	void* prev = NULL;
+	void* next;
+
 	
 	/* Set parent to parent thread, either running or main */
 	if(queue_length(running) != 0) {
@@ -234,16 +234,16 @@ int uthread_join(uthread_t tid, int *retval)
 	if(!is_child_done) {
 
 		/* Get next ready thread*/
-		queue_dequeue(queue, &child);
-		queue_enqueue(queue, child);
+		queue_dequeue(queue, &next);
+		queue_enqueue(queue, next);
 
 		/* Run child */
 		struct uthread* next_t = (struct uthread*)next;
 		queue_enqueue(running, (void*)next_t);
-		my_tid = child_t->tid;
+		my_tid = next_t->tid;
 		
 		/* Switch context to new */
-		uthread_ctx_switch(((struct uthread*)prev)->context, child_t->context);
+		uthread_ctx_switch(parent_t->context, next_t->context);
 	}
 	// TODO: get retval and free memory of child
 	
