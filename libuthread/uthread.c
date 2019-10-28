@@ -28,7 +28,7 @@ struct uthread{
 	/* 0 ready, 1 blocked, 2 running, 3 zombie */
 	int state;
 	uthread_t block_child;
-	int retval;
+	int* retval;
 };
 
 uthread_t tid_idx = 0;
@@ -217,7 +217,6 @@ int uthread_join(uthread_t tid, int *retval)
 	 
 	void* parent;
 	void* next;
-
 	
 	/* Set parent to parent thread, either running or main */
 	if(queue_length(running) != 0) {
@@ -252,8 +251,10 @@ int uthread_join(uthread_t tid, int *retval)
 		/* Switch context to new */
 		uthread_ctx_switch(parent_t->context, next_t->context);
 	}
-	// TODO: get retval and free memory of child
-	
+	// TODO: free memory of child
+	void* child;
+	queue_iterate(queue, find_tid , &tid, &child);
+	retval = ((struct uthread*)child)->retval;
 	parent_t->state = 0;
 	queue_enqueue(queue, (void*)parent_t);
 	
