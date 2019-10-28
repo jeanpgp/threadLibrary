@@ -19,6 +19,7 @@ queue_t queue;
 queue_t running;
 queue_t main_queue;
 queue_t zombies;
+queue_t blocked;
 
 struct uthread{
 	uthread_t tid;
@@ -26,10 +27,12 @@ struct uthread{
 	char* stack;
 	/* 0 ready, 1 blocked, 2 running, 3 zombie */
 	int state;
+	uthread_t block_child;
 };
 
 uthread_t tid_idx = 0;
 uthread_t my_tid = 0;
+
 
 void run_next_thread(void** curr) 
 {
@@ -62,33 +65,32 @@ void uthread_yield(void)
 	void *curr;
 	
 	/* No other process to run, so keep running current process */
-	if(queue_length(queue) == 0) return;
+	if(queue_length(queue) == 0){
+		printf("length = 0\n");
+		return;
+	}
 	
-		/* Get next ready thread*/
-		while (1) {
-			queue_dequeue(queue, &next);
-			if (((struct uthread*)next)->state != 0) {
-				queue_enqueue(queue, next);
-			} else break;
-		}
+	/* Get next ready thread*/
+
+	queue_dequeue(queue, &next);
 	
+	/*Choose either running or main*/
 	if (queue_length(running) != 0) {
 		queue_dequeue(running, &curr);
 	} else {
 		queue_dequeue(main_queue, &curr);
 	}
+
 	struct uthread* curr_t = (struct uthread*)curr;
 	struct uthread* next_t = (struct uthread*)next;
 	
 	my_tid = next_t->tid;
-	uthread_ctx_switch( curr_t->context, next_t->context);
-	
-	curr_t->state = 0;
-	next_t->state = 2;
-	
+	/*  */
 	queue_enqueue(running, (void*)next_t);
 	if (curr_t->tid != 0) { queue_enqueue(queue, (void*)curr_t); }
 	else { queue_enqueue(main_queue, (void*)curr_t); }
+
+	uthread_ctx_switch( curr_t->context, next_t->context);
 }
 
 uthread_t uthread_self(void)
@@ -104,13 +106,13 @@ int create_main()
 	running = queue_create();
 	main_queue = queue_create();
 	zombies = queue_create();
+	blocked = queue_create();
 	//initializing main
 	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	struct uthread* thread = (struct uthread*)malloc(sizeof(struct uthread));
 	if (getcontext(uctx)){
 		return -1;
 	}
-
 	thread->context = uctx;
 	thread->tid = tid_idx;
 	thread->stack = uthread_ctx_alloc_stack();
@@ -150,6 +152,7 @@ void uthread_exit(int* retval)
 {
 	/* Pull thread out of running and store */
 	void* curr;
+	void* parent;
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
 	curr_t->state = 3;
@@ -157,6 +160,16 @@ void uthread_exit(int* retval)
 	/* Store thread in zombies */
 	queue_enqueue(zombies, (void*)curr_t);
 	
+	/* check if it is blocking by parent */	
+	queue_iterate(blocked, find_tid , &curr_t->tid, &parent);	
+	if (parent == NULL)
+	{
+		printf("don't have parent\n");
+	}
+	else{
+		printf("have parent\n");
+	}
+
 	/* Run next thread */
 	run_next_thread(&curr);
 }
@@ -206,33 +219,29 @@ int uthread_join(uthread_t tid, int *retval)
 	/* Set parent thread state to blocked */
 	struct uthread* parent_t = (struct uthread*)parent;
 	parent_t->state = 1;
+	parent_t->block_child = tid;
 	int is_child_done = 0;
 	
 	/* Run other threads until the child finishes and parent can begin */
 	while(!is_child_done) {
 		
-	/* Get previous running process */
-	if(queue_length(running) != 0) {
-		queue_dequeue(running, &prev);
-		struct uthread* prev_t = (struct uthread*) prev;
-		prev_t->state = 0;
-		queue_enqueue(main_queue, (void*)prev_t);
-	} else {
-		queue_dequeue(main_queue, &prev);
-		queue_enqueue(main_queue, prev);
-	}
-	
-		/* Get next ready thread*/
-		while (1) {
-			queue_dequeue(queue, &child);
-			if (((struct uthread*)child)->state != 0) {
-				queue_enqueue(queue, child);
-			} else break;
+		/* Get previous running process or main*/
+		if(queue_length(running) != 0) {
+			queue_dequeue(running, &prev);
+			struct uthread* prev_t = (struct uthread*) prev;
+			prev_t->state = 0;
+			queue_enqueue(main_queue, (void*)prev_t);
+		} else {
+			queue_dequeue(main_queue, &prev);
+			queue_enqueue(main_queue, prev);
 		}
+	
+		/* Get tid node as child*/
+		queue_iterate(queue,find_tid , &tid, &child);
+		queue_delete(queue, child);
 
 		/* Run child */
 		struct uthread* child_t = (struct uthread*)child;
-		child_t->state = 2;
 		queue_enqueue(running, (void*)child_t);
 		my_tid = child_t->tid;
 		

@@ -48,6 +48,7 @@ int queue_enqueue(queue_t queue, void *data)
 	if (queue->head == NULL){
 		new_node->prev = NULL;
 		queue->head = new_node;
+		//printf("made new node with empty\n");
 	}
 	else{/*if not empty */
 		/*points to the head */
@@ -86,18 +87,33 @@ int queue_dequeue(queue_t queue, void **data)
 int queue_delete(queue_t queue, void *data)
 {
 	struct node* curr_node = queue->head;
-	while(curr_node->data !=NULL && curr_node!=NULL){
+
+	while(curr_node!=NULL && curr_node->data !=NULL ){
+		printf("delete\n");
 		if (curr_node->data == data){
-			struct node* next = curr_node->next;
-			if (curr_node->prev != NULL){
-				struct node* previous = curr_node->prev;
-				previous->next = next->prev;
-			}
-			else{
+			/* Empty the queue*/
+			if (curr_node->next ==NULL && curr_node->prev == NULL){
+				queue->head = NULL;
+				queue->tail = NULL;			
+			}/* then we are deleting the head */
+			else if (curr_node->next !=NULL && curr_node->prev == NULL){
+				struct node* next = curr_node->next;
 				next->prev = NULL;
-				queue->head =  next;
+				queue->head = next ;	
+			}/* then we are deleting the tail */			
+			else if (curr_node->prev != NULL && curr_node->next ==NULL){
+				struct node* previous = curr_node->prev;
+				previous->next =NULL;
+				queue->tail = previous ;
+			}
+			else{ /* we are deleting the middle node*/
+				struct node* next = curr_node->next;
+				struct node* previous = curr_node->prev;				
+				next->prev = previous;
+				previous->next = next;
 			}
 			queue->length = queue->length - 1;
+			printf("find\n");
 			return 1;
 		}
 	}
