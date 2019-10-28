@@ -172,22 +172,18 @@ void uthread_exit(int retval)
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
 	curr_t->retval = retval;
-	curr_t->state = 3;
-	
+
 	/* Store thread in zombies */
 	queue_enqueue(zombies, (void*)curr_t);
 	
 	/* check if it is blocking by parent */	
 	queue_iterate(blocked, block_tid , &curr_t->tid, &parent);
 
-	if (parent == NULL)
-	{
-		//printf("don't have parent\n");
-	}
-	else{
+	if (parent != NULL){
 		struct uthread* parent_t = (struct uthread*)parent;
 		queue_enqueue(queue, parent_t);
 	}
+	
 	/* Run next thread */
 	run_next_thread(&curr);
 }
@@ -215,12 +211,11 @@ int check_thread_done(uthread_t tid)
 /*Context Switch*/
 int uthread_join(uthread_t tid, int* retval)
 {
-	/* TODO Phase 3 */
-	/* What code should do:
+	/* Code overview:
 	 * Get all info about current running thread, that is the parent
 	 * set parent state to blocked (1)
-	 * loop where all threads in queue run if they have ready status
-	 * break loop when child is not in queue or is in zombies
+	 * loop where all threads in ready queue run
+	 * break loop when child is not in ready or blocked queue
 	 * if child is in zombies, retrieve return value
 	 * then set parent status to ready (0)
 	 */
@@ -244,18 +239,15 @@ int uthread_join(uthread_t tid, int* retval)
 	queue_enqueue(blocked, parent);
 	parent_t->state = 1;
 	parent_t->tid_child = tid;
-	int is_child_done = 0;
-
 	
 	/* Check if child has finished executing */
-	is_child_done = check_thread_done(tid);		
-
+	int is_child_done = check_thread_done(tid);		
+	
 	/* Run other threads until the child finishes and parent can begin */
 	if(!is_child_done) {
-
+	
 		/* Get next ready thread */
 		queue_dequeue(queue, &next);
-
 
 		/* Run child */
 		struct uthread* next_t = (struct uthread*)next;
@@ -265,18 +257,19 @@ int uthread_join(uthread_t tid, int* retval)
 		/* Switch context to new */
 		uthread_ctx_switch(parent_t->context, next_t->context);
 	}
-	// Get child and retval
+	
+	/* Get child and retval */
 	void* child;
 	queue_iterate(zombies, find_tid , &tid, &child); 
 	*retval = (((struct uthread*)child)->retval);
-	
-	// delete from zombies and free memory of child
-	//FIXME: delete from zombies
-	//queue_delete(zombies, child);
+
+	/* Delete from zombies and free memory of child */
+	queue_delete(zombies, child);
 	free(((struct uthread*)child)->context);
 	uthread_ctx_destroy_stack(((struct uthread*)child)->stack);
 	free((struct uthread*)child);
 
+	/* Enqueue parent into ready queue */
 	parent_t->state = 0;
 	queue_enqueue(queue, (void*)parent_t);
 	

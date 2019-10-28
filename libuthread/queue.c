@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 #include "queue.h"
+#include "uthread.h"
 
 /* individual node */
 struct queue {
-	/* TODO Phase 1 */
 	struct node *head;
 	struct node *tail;	
 	int length;
@@ -19,24 +19,23 @@ struct node {
 	void *data;
 };
 
-
+/* Create new queue */
 queue_t queue_create(void)
 {
-	/* TODO Phase 1 */
 	queue_t queue = (queue_t)malloc(sizeof(queue_t));
 	queue->length = 0;
 	return queue;
 }
 
+/* Destroy a queue */
 int queue_destroy(queue_t queue)
 {
-	/* TODO Phase 1 */	
 	free(queue);
 }
 
+/* Enqueue data, meaning push to back end of queue */
 int queue_enqueue(queue_t queue, void *data)
 {
-	/* TODO Phase 1 */
 	struct node* new_node = (struct node*)malloc(sizeof(struct node));
 	
 	if (queue == NULL || data == NULL || new_node == NULL){
@@ -61,9 +60,9 @@ int queue_enqueue(queue_t queue, void *data)
 	return 0;
 }
 
+/* Dequeue data, meaning pop next element in queue and move others up */
 int queue_dequeue(queue_t queue, void **data)
 {
-	/* TODO Phase 1 */
 	if (queue == NULL || queue->head == NULL || queue->head->data == NULL){
 		return -1;
 	}
@@ -84,12 +83,13 @@ int queue_dequeue(queue_t queue, void **data)
 	
 }
 
+/* Delete element with matching data from queue */
 int queue_delete(queue_t queue, void *data)
 {
 	struct node* curr_node = queue->head;
 
-	while(curr_node!=NULL && curr_node->data !=NULL ){
-		printf("delete\n");
+	while(curr_node != NULL && curr_node->data != NULL){
+		//printf("delete\n");
 		if (curr_node->data == data){
 			/* Empty the queue*/
 			if (curr_node->next ==NULL && curr_node->prev == NULL){
@@ -113,12 +113,13 @@ int queue_delete(queue_t queue, void *data)
 				previous->next = next;
 			}
 			queue->length = queue->length - 1;
-			printf("find\n");
 			return 1;
+		} else {
+			if(curr_node->next == NULL) return -1;
+			curr_node = curr_node->next;
 		}
 	}
 	return -1;
-	/* TODO Phase 1 */ 
 }
 
 /*
@@ -160,6 +161,7 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 	return -1;
 }
 
+/* Return length of queue */
 int queue_length(queue_t queue)
 {
 	/* TODO Phase 1 */
