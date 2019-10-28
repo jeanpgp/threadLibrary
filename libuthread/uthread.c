@@ -28,7 +28,7 @@ struct uthread{
 	/* 0 ready, 1 blocked, 2 running, 3 zombie */
 	int state;
 	uthread_t tid_child;
-	int* retval;
+	int retval;
 };
 
 uthread_t tid_idx = 0;
@@ -164,7 +164,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	return thread->tid;
 }
 
-void uthread_exit(int* retval)
+void uthread_exit(int retval)
 {	
 	/* Pull thread out of running and store */
 	void* curr;
@@ -213,7 +213,7 @@ int check_thread_done(uthread_t tid)
 }
 
 /*Context Switch*/
-int uthread_join(uthread_t tid, int *retval)
+int uthread_join(uthread_t tid, int* retval)
 {
 	/* TODO Phase 3 */
 	/* What code should do:

@@ -21,7 +21,7 @@ int thread3(void* arg)
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
 	int retval = 0;
-	uthread_exit(&retval);
+	uthread_exit(retval);
 	return 3;
 }
 
@@ -41,7 +41,7 @@ int thread1(void* arg)
 	return 1;
 	
 	int retval = 0;
-	uthread_exit(&retval);
+	uthread_exit(retval);
 	printf("thread%d\n", uthread_self());
 	uthread_yield();
 	return 1;
