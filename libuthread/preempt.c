@@ -19,18 +19,31 @@
 #define HZ 100
 #define T 10000
 
+//FIXME: force current thread to yield and switch to new thread
 void timer_handler(int signum) {
 	printf("handled");
 }
 
 void preempt_disable(void)
 {
-	/* TODO Phase 4 */
+	/* Setting timer_sig to timer signal, so we can disable */
+	sigset_t timer_sig;
+	sigemptyset(&timer_sig);
+	sigaddset(&timer_sig, SIGVTALRM);
+	
+	/* Disabling timer signal */
+	sigprocmask(SIG_BLOCK, &timer_sig, NULL);
 }
 
 void preempt_enable(void)
 {
-	/* TODO Phase 4 */
+	/* Setting timer_sig to timer signal, so we can disable */
+	sigset_t timer_sig;
+	sigemptyset(&timer_sig);
+	sigaddset(&timer_sig, SIGVTALRM);
+	
+	/* Enabling timer signal */
+	sigprocmask(SIG_UNBLOCK, &timer_sig, NULL);
 }
 
 void preempt_start(void)
