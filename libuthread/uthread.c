@@ -28,7 +28,7 @@ struct uthread{
 	/* 0 ready, 1 blocked, 2 running, 3 zombie */
 	int state;
 	uthread_t tid_child;
-	int retval;
+	int* retval;
 };
 
 uthread_t tid_idx = 0;
@@ -176,7 +176,7 @@ void uthread_exit(int* retval)
 	
 	/* Store thread in zombies */
 	queue_enqueue(zombies, (void*)curr_t);
-	//printf("%d\n",retval);
+	
 	/* check if it is blocking by parent */	
 	queue_iterate(blocked, block_tid , &curr_t->tid, &parent);
 
@@ -265,10 +265,18 @@ int uthread_join(uthread_t tid, int *retval)
 		/* Switch context to new */
 		uthread_ctx_switch(parent_t->context, next_t->context);
 	}
-	// TODO: free memory of child
+	// Get child and retval
 	void* child;
-	queue_iterate(queue, find_tid , &tid, &child);
-	retval = ((struct uthread*)child)->retval;
+	queue_iterate(zombies, find_tid , &tid, &child); 
+	*retval = (((struct uthread*)child)->retval);
+	
+	// delete from zombies and free memory of child
+	//FIXME: delete from zombies
+	//queue_delete(zombies, child);
+	free(((struct uthread*)child)->context);
+	uthread_ctx_destroy_stack(((struct uthread*)child)->stack);
+	free((struct uthread*)child);
+
 	parent_t->state = 0;
 	queue_enqueue(queue, (void*)parent_t);
 	

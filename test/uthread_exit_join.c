@@ -22,7 +22,7 @@ int thread3(void* arg)
 	printf("thread%d\n", uthread_self());
 	int retval = 0;
 	uthread_exit(&retval);
-	return 0;
+	return 3;
 }
 
 int thread2(void* arg)
@@ -31,25 +31,30 @@ int thread2(void* arg)
 	uthread_join(uthread_create(thread3, NULL), NULL);
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
-	return 0;
+	return 2;
 }
 
 int thread1(void* arg)
 {
 	uthread_create(thread2, NULL);
 	printf("Arrive thread1 Hi\n");
+	return 1;
+	
 	int retval = 0;
 	uthread_exit(&retval);
 	printf("thread%d\n", uthread_self());
 	uthread_yield();
-	return 0;
+	return 1;
 }
 
 int main(void)
 {
-	int* retval = NULL;
+	int* retval = malloc(sizeof(int));
+	
 	uthread_join(uthread_create(thread1, NULL), retval);
-	printf("retval thread1: %d", *retval);
+	printf("retval thread1: %d\n", *retval);
 	printf("thread%d\n", uthread_self());
+	
+	free(retval);
 	return 0;
 }
