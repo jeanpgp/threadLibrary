@@ -1,6 +1,8 @@
 #ifndef _PREEMPT_H
 #define _PREEMPT_H
 
+#include <signal.h>
+
 /*
  * preempt_start - Start thread preemption
  *
