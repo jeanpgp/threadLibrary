@@ -31,9 +31,9 @@ struct uthread{
 	int retval;
 };
 
-/* Global vars. 
+/* Global var
  * tid_idx = tid of the next thread we create
- * my_tid = tid of the currently running thread
+ * If 0, then the library has not yet been initialized
  */
 uthread_t tid_idx = 0;
 
@@ -43,6 +43,8 @@ uthread_t uthread_self(void)
 {
 	void* curr;
 	uthread_t tid;
+	
+	if (queue_length(running) == 0) return 0;
 	
 	queue_dequeue(running, &curr);
 	queue_enqueue(running, curr);
@@ -241,7 +243,7 @@ void uthread_yield(void)
  */
 int uthread_join(uthread_t tid, int* retval)
 {	
-	/* Code overview:
+	/* Logic overview:
 	 * Get all info about current running thread, that is the parent
 	 * set parent state to blocked (1)
 	 * loop where all threads in ready queue run
@@ -289,8 +291,9 @@ int uthread_join(uthread_t tid, int* retval)
 	
 	/* Get child and retval */
 	void* child;
-	queue_iterate(zombies, find_tid , &tid, &child); 
-	*retval = (((struct uthread*)child)->retval);
+	queue_iterate(zombies, find_tid , &tid, &child);
+	
+	if (retval != NULL) *retval = (((struct uthread*)child)->retval);
 
 	/* Delete from zombies and free memory of child */
 	queue_delete(zombies, child);

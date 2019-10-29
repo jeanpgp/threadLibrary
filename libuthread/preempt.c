@@ -26,24 +26,20 @@ void timer_handler(int signum) {
 
 void preempt_disable(void)
 {
-	/* Setting timer_sig to timer signal, so we can disable */
-	sigset_t timer_sig;
-	sigemptyset(&timer_sig);
-	sigaddset(&timer_sig, SIGVTALRM);
-	
-	/* Disabling timer signal */
-	sigprocmask(SIG_BLOCK, &timer_sig, NULL);
+	struct sigaction sa;
+
+	/* Set signal handler to ignore signal */
+ 	sa.sa_handler = SIG_IGN;
+ 	sigaction(SIGVTALRM, &sa, NULL);
 }
 
 void preempt_enable(void)
 {
-	/* Setting timer_sig to timer signal, so we can disable */
-	sigset_t timer_sig;
-	sigemptyset(&timer_sig);
-	sigaddset(&timer_sig, SIGVTALRM);
-	
-	/* Enabling timer signal */
-	sigprocmask(SIG_UNBLOCK, &timer_sig, NULL);
+	struct sigaction sa;
+
+	/* Set signal handler to handle signal */
+ 	sa.sa_handler = &timer_handler;
+ 	sigaction(SIGVTALRM, &sa, NULL);
 }
 
 void preempt_start(void)
