@@ -21,6 +21,7 @@
 
 /* Yield to new thread */
 void timer_handler(int signum) {
+	printf("timer\n");
 	uthread_yield();
 }
 
@@ -51,9 +52,8 @@ void preempt_start(void)
 	struct sigaction sa;
 	struct itimerval timer;
 	
-	/* Allocate memory */
-	memset(&timer, 0, sizeof(timer));
-	memset (&sa, 0, sizeof (sa));
+	/* Set memory */
+	memset(&sa, 0, sizeof (sa));
 
 	/* Set timer_handler as signal handler for timer */
  	sa.sa_handler = &timer_handler;

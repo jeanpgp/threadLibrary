@@ -3,24 +3,23 @@
 
 #include <uthread.h>
 
-long int MAX = 10000;
+long int MAX = 1000000;
 
 int huge(void* arg)
 {	
 	printf("Running huge loop\n");
-	for (int i = 0; i < MAX; i++) {
-		printf("Hello huge!");
-	}
+	//for (int i = 0; i < MAX; i++) {
+	//	if ((i % 10000) == 0) printf("Hello huge!\n");
+	//}
 
+	while(1) {}
 	printf("thread%d", uthread_self());
 
 	return 3;
 }
 
 int hello_world(void* arg) {
-	for (int i = 0; i < 10; i++) {
-		printf("Hello world!");
-	}
+	printf("Hello world!\n");
 	
 	return 6;
 }
