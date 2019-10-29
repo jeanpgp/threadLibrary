@@ -25,6 +25,7 @@ void timer_handler(int signum) {
 	uthread_yield();
 }
 
+/* Disable signal handler for timer */
 void preempt_disable(void)
 {
 	struct sigaction sig;
@@ -34,6 +35,7 @@ void preempt_disable(void)
  	sigaction(SIGVTALRM, &sig, NULL);
 }
 
+/* Enable signal handler for timer */
 void preempt_enable(void)
 {
 	struct sigaction sig;
@@ -43,6 +45,7 @@ void preempt_enable(void)
  	sigaction(SIGVTALRM, &sig, NULL);
 }
 
+/* Create and enable timer and handler for timer, using SIGVTALRM signals */
 void preempt_start(void)
 {
 	struct sigaction sig;
