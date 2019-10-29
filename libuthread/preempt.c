@@ -16,6 +16,7 @@
  * 100Hz is 100 times per second
  * 0.01 seconds, or 10,000 milliseconds is T, period
  */
+ 
 #define HZ 100
 #define T 10000
 

@@ -1,3 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <uthread.h>
+#include <preempt.h>
+
 /*
  * Thread yielding, exiting, and joining test
  * 
@@ -28,13 +34,7 @@
  * retval func1: 1
  * thread0
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <uthread.h>
-#include <preempt.h>
-
+ 
 int func3(void* arg)
 {
 	printf("Arrive func3 Hi\n");

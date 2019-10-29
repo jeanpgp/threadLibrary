@@ -4,9 +4,6 @@
 #include <uthread.h>
 #include <preempt.h>
 
-#define INTERVAL 5000000
-#define END 200
-
 /* Test case for preemption
  * Runs in 3 phases, as denoted by the print statements:
  * 1) DEFAULT, where no preemption statement has been called from the user
@@ -42,7 +39,9 @@
  * higher tid)
  * And when we reach main, all memory has been freed
  */
-
+ 
+#define INTERVAL 5000000
+#define END 200
 
 int count_huge_print = 0;
 
