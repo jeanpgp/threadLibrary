@@ -262,10 +262,14 @@ int uthread_join(uthread_t tid, int* retval)
 		uthread_ctx_switch(parent_t->context, next_t->context);
 	}
 	
+	printf("1");
+	
 	/* Get child and retval */
 	void* child;
 	queue_iterate(zombies, find_tid , &tid, &child); 
 	*retval = (((struct uthread*)child)->retval);
+	
+	printf("2");
 
 	/* Delete from zombies and free memory of child */
 	queue_delete(zombies, child);
@@ -273,6 +277,8 @@ int uthread_join(uthread_t tid, int* retval)
 	uthread_ctx_destroy_stack(((struct uthread*)child)->stack);
 	free((struct uthread*)child);
 
+	printf("3");
+	
 	/* Enqueue parent into ready queue */
 	parent_t->state = 0;
 	queue_enqueue(queue, (void*)parent_t);

@@ -4,16 +4,23 @@
 #include <uthread.h>
 
 #define INTERVAL 5000000
-#define END 300
+#define END 100
+
+int cur = 0;
 
 int huge(void* arg)
 {	
 	printf("Running huge loop\n");
+	
 	long int i = 0;
+	int count_print = 0;
+	
 	while(1) {
 		if ((i % INTERVAL) == 0) {
-			printf("Hello huge %ld!\n", i / INTERVAL);
+			i = 0;
+			printf("Hello huge %d!\n", ++count_print);
 		}
+		if(cur == END) break;
 		i++;
 	}
 
@@ -21,11 +28,13 @@ int huge(void* arg)
 }
 
 int hello_thread(void* arg) {
-	printf("Hello thread %d!\n", uthread_self());
-
-	if(uthread_self() == END) exit(0);
-
-	uthread_create(hello_thread, NULL);	
+	cur = uthread_self();
+	printf("Hello thread %d!\n", cur);
+	
+	if(cur != END) {
+		uthread_create(hello_thread, NULL);	
+	}
+	
 	return 6;
 }
 
