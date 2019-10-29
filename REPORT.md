@@ -80,7 +80,7 @@
     engage in the predicted behavior
 
 ***
-# (i) Resources
+# Resources
 - [GNU Manual for signal handling and blocking signals]
   (https://www.gnu.org/software/libc/manual/html_mono/libc.html#Signal-Actions)
 - [LINUX Manual for signal handling]
