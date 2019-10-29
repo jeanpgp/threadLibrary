@@ -54,16 +54,40 @@ main
 - After this our instance of `command` has all the relevant data to execute the command, and thus the string is correctly parsed.
 ***
 # Part III - Testing
-- The majority of our testing was done by hand, by testing all major cases we could think of
-  - For basic command execution, we tested every command with every argument slot full
-  - For example, we tested ls by running:
-    - `ls <valid_optional_args>`, `ls <valid_dir_name>`, `ls <valid_optional_args> <valid_dir_name>`, 
-      `ls <invalid_optional_args> <valid_dir_name>`, `ls <valid_optional_args> <invalid_dir_name>`
-  - For redirection, we tested by rediredirecting both a valid and invalid argument for both input and output 
-    files for each command (4 tests total per command) 
-  - Although these tests did not represent all possible command executions, they represent each general category,
-    which is sufficient for a test done by hand.
-- We also utilized the provided testing script, and used it to fix how our output was printed.
+- Our largest test case, which tests all our implementation `preempt_{start, enable, disable}` and `uthread_{yield, join, exit, create}`, is `test_preempt`
+- This test case runs in 4 phases
+1. DEFAULT, where no preemption statement has been called from the user
+2) DISABLED, where the user has called preempt_disable() after default
+3) ENABLED, where the user has reenabled preempt by calling preempt_enable()
+4) EXITING, where all user threads call exit and get their memory freed
+ *
+ * The rest of the program runs in a loop, with 2 functions that become threads,
+ * huge and hello_thread
+ *
+ * huge) Only 1 thread is made of huge, which is a very very long loop
+ * It increments an integer i until it is equal to the macro INTERVAL
+ * After which it resets i to 0, prints a message, and increments a counter
+ * for how many times it has printed
+ * This counter, count_huge_print, is the control variable of the whole program
+ *
+ * hello_thread) Many threads of this function are made (about 1/4 * END)
+ * It print its tid and joins to a new thread of itself
+ * So, at the very end, we will have about (about 1/4 * END) threads, all
+ * joined to each other
+ *
+ * count_huge_print:
+ * After huge has printed END / 3 times (count_huge_print == END / 3), phase 2 
+ * begins and preemption is disabled
+ * After huge has printed 2 * END / 3 times (count_huge_print == 2 * (END / 3)),
+ * phase 3 begins and preemption is re-enabled
+ * Finally, once count_huge_print == END, the loop ends and all the threads
+ * have terminated
+ *
+ * Upon termination, huge calls uthread_exit(), followed by the hello_thread
+ * thread with the largest tid and going down from there
+ * Each thread frees the memory of the thread further down the chain (with the
+ * higher tid)
+ * And when we reach main, all memory has been freed
 ***
 # Resources
   - For relearning the specifics of C and for general help, two sources were instrumental:
