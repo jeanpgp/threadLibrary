@@ -19,9 +19,9 @@
 #define HZ 100
 #define T 10000
 
-//FIXME: force current thread to yield and switch to new thread
+/* Yield to new thread */
 void timer_handler(int signum) {
-	printf("handled");
+	uthread_yield();
 }
 
 void preempt_disable(void)

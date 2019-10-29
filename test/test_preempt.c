@@ -5,24 +5,35 @@
 
 long int MAX = 10000;
 
-int disable(void* arg)
+int huge(void)
 {	
-	printf("Running infinite loop\n");
-	while(1) {}
+	printf("Running huge loop\n");
+	for (int i = 0; i < MAX; i++) {
+		printf("Hello huge!");
+	}
 
-	printf("Hello world!\n");
-	uthread_self();
+	printf("thread%d", uthread_self());
 
 	return 0;
 }
 
+int hello_world(void) {
+	for (int i = 0; i < 10; i++) {
+		printf("Hello world!");
+	}
+}
+
 int main(void)
 {
-	uthread_t tid;
+	uthread_t tid, tid2;
 
-	tid = uthread_create(disable, NULL);
-	uthread_self();
+	tid = uthread_create(huge, NULL);
+	tid2 = uthread_create(hello_world, NULL);
+
 	uthread_join(tid, NULL);
+	uthread_join(tid2, NULL);
+	
+	printf("thread%d\n", uthread_self());
 	
 	return 0;
 }
