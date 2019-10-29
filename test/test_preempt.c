@@ -2,7 +2,11 @@
 #include <stdlib.h>
 
 #include <uthread.h>
+<<<<<<< HEAD
+#include "preempt.h"
+=======
 #include <preempt.h>
+>>>>>>> c40f5ab026a2c5695dd894577c539a31cc86dfd1
 
 #define INTERVAL 5000000
 #define END 200
@@ -99,8 +103,15 @@ int main(void)
 	tid = uthread_create(huge, NULL);
 	tid2 = uthread_create(hello_thread, NULL);
 
+<<<<<<< HEAD
+	tid = uthread_create(disable, NULL);
+	uthread_self();
+	preempt_start();
+	uthread_join(tid, NULL);
+=======
 	uthread_join(tid, &ret1);
 	uthread_join(tid2, &ret2);
+>>>>>>> c40f5ab026a2c5695dd894577c539a31cc86dfd1
 	
 	printf("\nHello main (thread %d)! Retvals: %d %d \n\n",
 		uthread_self(), ret1, ret2);
