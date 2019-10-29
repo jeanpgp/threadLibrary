@@ -26,33 +26,30 @@ void timer_handler(int signum) {
 
 void preempt_disable(void)
 {
-	struct sigaction sa;
+	struct sigaction sig;
 
 	/* Set signal handler to ignore signal */
- 	sa.sa_handler = SIG_IGN;
- 	sigaction(SIGVTALRM, &sa, NULL);
+ 	sig.sig_handler = SIG_IGN;
+ 	sigaction(SIGVTALRM, &sig, NULL);
 }
 
 void preempt_enable(void)
 {
-	struct sigaction sa;
+	struct sigaction sig;
 
 	/* Set signal handler to handle signal */
- 	sa.sa_handler = &timer_handler;
- 	sigaction(SIGVTALRM, &sa, NULL);
+ 	sig.sig_handler = &timer_handler;
+ 	sigaction(SIGVTALRM, &sig, NULL);
 }
 
 void preempt_start(void)
 {
-	struct sigaction sa;
+	struct sigaction sig;
 	struct itimerval timer;
-	
-	/* Set memory */
-	memset(&sa, 0, sizeof (sa));
 
 	/* Set timer_handler as signal handler for timer */
- 	sa.sa_handler = &timer_handler;
- 	sigaction(SIGVTALRM, &sa, NULL);
+ 	sig.sig_handler = &timer_handler;
+ 	sigaction(SIGVTALRM, &sig, NULL);
  
 	/* Set timer to raise alarm every time period elapses */
 	timer.it_value.tv_sec = 0;
