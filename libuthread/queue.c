@@ -30,7 +30,11 @@ queue_t queue_create(void)
 /* Destroy a queue */
 int queue_destroy(queue_t queue)
 {
+	if (queue == NULL || queue_length(queue)!=0 ){
+		return -1;
+	}
 	free(queue);
+	return 0;
 }
 
 /* Enqueue data, meaning push to back end of queue */
@@ -84,7 +88,11 @@ int queue_dequeue(queue_t queue, void **data)
 
 /* Delete element with matching data from queue */
 int queue_delete(queue_t queue, void *data)
+
 {
+	if (queue == NULL || data == NULL){
+		return -1;
+	}
 	struct node* curr_node = queue->head;
 
 	while(curr_node != NULL && curr_node->data != NULL){
@@ -132,13 +140,14 @@ int queue_delete(queue_t queue, void *data)
 /*@data: (Optional) Address of data pointer where an item can be received*/
 int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 {
-	struct node* curr_node = queue->head;
 	int stop = 0;
 
 	if (queue == NULL || func == NULL)
 	{
 		return -1;
 	}
+	struct node* curr_node = queue->head;
+
 	while(curr_node != NULL )
 	{/* while not the end */
 		stop = func(curr_node->data, arg);

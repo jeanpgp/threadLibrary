@@ -25,8 +25,6 @@ struct uthread{
 	uthread_t tid;
 	uthread_ctx_t* context;
 	char* stack;
-	/* 0 ready, 1 blocked, 2 running, 3 zombie */
-	int state;
 	uthread_t tid_child;
 	int retval;
 };
@@ -119,7 +117,7 @@ int create_main()
 	thread->context = uctx;
 	thread->tid = tid_idx;
 	thread->stack = uthread_ctx_alloc_stack();
-	thread->state = 1; /* Running */
+
 	tid_idx++;
 	queue_enqueue(main_queue, thread);
 	
@@ -147,7 +145,6 @@ int uthread_create(uthread_func_t func, void *arg)
 	thread->tid = tid_idx;
 	thread->context = uctx;
 	thread->stack = stack;
-	thread->state = 0; /* Ready */
 	thread->tid_child = 0;
 	tid_idx++;
 	queue_enqueue(queue, thread);
@@ -269,7 +266,6 @@ int uthread_join(uthread_t tid, int* retval)
 	/* Set parent thread state to blocked */
 	struct uthread* parent_t = (struct uthread*)parent;
 	queue_enqueue(blocked, parent);
-	parent_t->state = 1;
 	parent_t->tid_child = tid;
 	
 	/* Check if child has finished executing */
