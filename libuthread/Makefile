@@ -12,7 +12,7 @@ uthread.o: uthread.c
 	gcc -c uthread.c context.c
 
 context.o: context.c
-	gcc -c context.c	
+	gcc -c context.c
 
 preempt.o: preempt.c
 	gcc -c preempt.c

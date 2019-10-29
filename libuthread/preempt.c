@@ -19,45 +19,37 @@
 #define HZ 100
 #define T 10000
 
-//FIXME: force current thread to yield and switch to new thread
+/* Yield to new thread */
 void timer_handler(int signum) {
-	printf("handled");
+	uthread_yield();
 }
 
 void preempt_disable(void)
 {
-	/* Setting timer_sig to timer signal, so we can disable */
-	sigset_t timer_sig;
-	sigemptyset(&timer_sig);
-	sigaddset(&timer_sig, SIGVTALRM);
-	
-	/* Disabling timer signal */
-	sigprocmask(SIG_BLOCK, &timer_sig, NULL);
+	struct sigaction sig;
+
+	/* Set signal handler to ignore signal */
+ 	sig.sa_handler = SIG_IGN;
+ 	sigaction(SIGVTALRM, &sig, NULL);
 }
 
 void preempt_enable(void)
 {
-	/* Setting timer_sig to timer signal, so we can disable */
-	sigset_t timer_sig;
-	sigemptyset(&timer_sig);
-	sigaddset(&timer_sig, SIGVTALRM);
-	
-	/* Enabling timer signal */
-	sigprocmask(SIG_UNBLOCK, &timer_sig, NULL);
+	struct sigaction sig;
+
+	/* Set signal handler to handle signal */
+ 	sig.sa_handler = &timer_handler;
+ 	sigaction(SIGVTALRM, &sig, NULL);
 }
 
 void preempt_start(void)
 {
-	struct sigaction sa;
+	struct sigaction sig;
 	struct itimerval timer;
-	
-	/* Allocate memory */
-	memset(&timer, 0, sizeof(timer));
-	memset (&sa, 0, sizeof (sa));
 
 	/* Set timer_handler as signal handler for timer */
- 	sa.sa_handler = &timer_handler;
- 	sigaction(SIGVTALRM, &sa, NULL);
+ 	sig.sa_handler = &timer_handler;
+ 	sigaction(SIGVTALRM, &sig, NULL);
  
 	/* Set timer to raise alarm every time period elapses */
 	timer.it_value.tv_sec = 0;

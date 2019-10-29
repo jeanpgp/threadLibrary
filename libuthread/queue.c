@@ -47,7 +47,6 @@ int queue_enqueue(queue_t queue, void *data)
 	if (queue->head == NULL){
 		new_node->prev = NULL;
 		queue->head = new_node;
-		//printf("made new node with empty\n");
 	}
 	else{/*if not empty */
 		/*points to the head */
@@ -89,7 +88,6 @@ int queue_delete(queue_t queue, void *data)
 	struct node* curr_node = queue->head;
 
 	while(curr_node != NULL && curr_node->data != NULL){
-		//printf("delete\n");
 		if (curr_node->data == data){
 			/* Empty the queue*/
 			if (curr_node->next ==NULL && curr_node->prev == NULL){
@@ -134,7 +132,6 @@ int queue_delete(queue_t queue, void *data)
 /*@data: (Optional) Address of data pointer where an item can be received*/
 int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 {
-	/* TODO Phase 1 */
 	struct node* curr_node = queue->head;
 	int stop = 0;
 
@@ -144,7 +141,6 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 	}
 	while(curr_node != NULL )
 	{/* while not the end */
-		//printf("iterate\n");
 		stop = func(curr_node->data, arg);
 		/* End Prematurely */
 		if (stop == 1 )
@@ -164,7 +160,6 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 /* Return length of queue */
 int queue_length(queue_t queue)
 {
-	/* TODO Phase 1 */
 	if (queue == NULL)
 	{
 		return -1;
