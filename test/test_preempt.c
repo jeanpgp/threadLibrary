@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include <uthread.h>
+#include "preempt.h"
 
 long int MAX = 10000;
 
@@ -22,6 +23,7 @@ int main(void)
 
 	tid = uthread_create(disable, NULL);
 	uthread_self();
+	preempt_start();
 	uthread_join(tid, NULL);
 	
 	return 0;

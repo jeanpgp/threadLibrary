@@ -50,7 +50,7 @@ int thread1(void* arg)
 int main(void)
 {
 	int* retval = malloc(sizeof(int));
-	
+	preempt_start();
 	uthread_join(uthread_create(thread1, NULL), retval);
 	printf("retval thread1: %d\n", *retval);
 	printf("thread%d\n", uthread_self());
