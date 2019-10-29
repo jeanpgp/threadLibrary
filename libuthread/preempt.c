@@ -21,7 +21,6 @@
 
 /* Yield to new thread */
 void timer_handler(int signum) {
-	printf("timer\n");
 	uthread_yield();
 }
 

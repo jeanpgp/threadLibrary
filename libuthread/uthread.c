@@ -123,7 +123,9 @@ int create_main()
 	main_queue = queue_create();
 	zombies = queue_create();
 	blocked = queue_create();
+
 	preempt_start();
+
 	
 	//initializing main
 	uthread_ctx_t* uctx = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
