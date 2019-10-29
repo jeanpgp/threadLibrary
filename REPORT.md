@@ -74,12 +74,20 @@
     when the program terminates
   - The freeing is handled by the parent, in `uthread_join`
   
-- Conclusion
+- **Conclusion**
   - This program adequetely tests all of the functions of our implementation
   - All the major functions mentioned above are called 50+ times, and all
     engage in the predicted behavior
 
-
 ***
 # (i) Resources
-  - http://www.informit.com/articles/article.aspx?p=23618&seqNum=14
+- [GNU Manual for signal handling and blocking signals]
+  (https://www.gnu.org/software/libc/manual/html_mono/libc.html#Signal-Actions)
+- [LINUX Manual for signal handling]
+  (http://man7.org/linux/man-pages/man2/sigaction.2.html)
+- [GNU Manual for alarm]
+  (https://www.gnu.org/software/libc/manual/html_mono/libc.html#Setting-an-Alarm)
+- [Excerpt from book Advanced Linux Programming for alarm]
+  (http://www.informit.com/articles/article.aspx?p=23618&seqNum=14)
+- [tldp.com for makefile]
+  (http://tldp.org/HOWTO/Program-Library-HOWTO/static-libraries.html)
