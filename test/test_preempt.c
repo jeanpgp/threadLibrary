@@ -32,7 +32,7 @@ int hello_thread(void* arg) {
 	printf("Hello thread %d!\n", cur);
 	
 	if(cur != END) {
-		uthread_create(hello_thread, NULL);	
+		uthread_join(uthread_create(hello_thread, NULL), NULL);	
 	}
 	
 	return 6;
