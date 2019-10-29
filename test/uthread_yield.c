@@ -1,12 +1,9 @@
 /*
  * Thread yielding, exiting, and joining test
- *
- * Tests the creation of multiples threads and the fact that a parent thread
- * should get returned to before its child is executed. The way the printing,
- * thread creation and yielding is done, the program should output:
- *
- * thread1
- * thread2
+ * 
+ * Should output:
+ * Arrive thread1 Hi
+ * Arrive thread2 Hi
  * thread3
  */
 
@@ -28,7 +25,6 @@ int thread3(void* arg)
 int thread2(void* arg)
 {
 	printf("Arrive thread2 Hi\n");
-	uthread_join(uthread_create(thread3, NULL), NULL);
 	uthread_yield();
 	printf("thread%d\n", uthread_self());
 	return 2;
