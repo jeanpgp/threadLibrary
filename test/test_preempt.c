@@ -2,11 +2,10 @@
 #include <stdlib.h>
 
 #include <uthread.h>
-#include "preempt.h"
+#include <preempt.h>
 
 #define INTERVAL 5000000
 #define END 200
-
 
 /* Test case for preemption
  * Runs in 3 phases, as denoted by the print statements:
