@@ -93,15 +93,17 @@ int hello_thread(void* arg) {
 
 int main(void)
 {
+	int ret1, ret2;
 	uthread_t tid, tid2;
 
 	tid = uthread_create(huge, NULL);
 	tid2 = uthread_create(hello_thread, NULL);
 
-	uthread_join(tid, NULL);
-	uthread_join(tid2, NULL);
+	uthread_join(tid, &ret1);
+	uthread_join(tid2, &ret2);
 	
-	printf("\nHello main (thread %d)!\n\n", uthread_self());
+	printf("\nHello main (thread %d)! Retvals: %d %d \n\n",
+		uthread_self(), ret1, ret2);
 
 	return 0;
 }
