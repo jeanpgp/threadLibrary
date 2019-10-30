@@ -43,10 +43,10 @@ uthread_t uthread_self(void)
 	uthread_t tid;
 	
 	if (queue_length(running) == 0) return 0;
-	
+	preempt_disable();
 	queue_dequeue(running, &curr);
 	queue_enqueue(running, curr);
-	
+	preempt_enable();	
 	tid = ((struct uthread*)curr)->tid;
 	
 	return tid;
@@ -78,7 +78,8 @@ int check_thread_done(uthread_t tid)
 {
 	int done = 1;
 	void* data;
-	
+	/* Safe guarding queue checking and modification*/
+	preempt_disable();
 	for(int i = 0; i < queue_length(queue); i++) {
 		queue_dequeue(queue, &data);
 		if (((struct uthread*)data)->tid == tid) done = 0;
@@ -90,7 +91,7 @@ int check_thread_done(uthread_t tid)
 		if (((struct uthread*)data)->tid == tid) done = 0;
 		queue_enqueue(blocked,data);
 	}
-	
+	preempt_enable();
 	return done;
 }
 
@@ -119,8 +120,10 @@ int create_main()
 	thread->stack = uthread_ctx_alloc_stack();
 
 	tid_idx++;
+	/* Safe guarding queue modification*/
+	preempt_disable();
 	queue_enqueue(main_queue, thread);
-	
+	preempt_enable();	
 	return 0;
 }
 
@@ -131,7 +134,8 @@ int uthread_create(uthread_func_t func, void *arg)
 	if (tid_idx == 0){
 		create_main();
 	}
-	
+	/* Safe guarding queue modification*/
+	preempt_disable();
 	/* Otherwise, initilize a new, basic thread and enqueue to ready queue */
 	int retval;
 	void* stack = uthread_ctx_alloc_stack();
@@ -148,6 +152,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	thread->tid_child = 0;
 	tid_idx++;
 	queue_enqueue(queue, thread);
+	preempt_enable();
 	return thread->tid;
 }
 
@@ -163,10 +168,11 @@ void run_next_thread(void** curr)
 	void *data;
 	
 	if(queue_length(queue) == 0) return;
-	
+	/* Safe guarding queue modification*/
+	preempt_disable();	
 	queue_dequeue(queue, &data); //pop the next in line;
 	queue_enqueue(running, data);
-	
+	preempt_enable();
 	struct uthread* curr_t = (struct uthread*)(*curr);
 	struct uthread* thread = (struct uthread*)data;
 	uthread_ctx_switch(curr_t->context, thread->context);
@@ -184,7 +190,8 @@ void uthread_exit(int retval)
 	queue_dequeue(running, &curr);
 	struct uthread* curr_t = (struct uthread*)curr;
 	curr_t->retval = retval;
-
+	/* Safe guarding queue modification*/
+	preempt_disable();
 	/* Store thread in zombies */
 	queue_enqueue(zombies, (void*)curr_t);
 	
@@ -194,6 +201,7 @@ void uthread_exit(int retval)
 	if (parent != NULL){
 		queue_enqueue(queue, parent);
 	}
+	preempt_enable();
 	
 	/* Run next thread */
 	run_next_thread(&curr);
@@ -211,7 +219,8 @@ void uthread_yield(void)
 	if(queue_length(queue) == 0){
 		return;
 	}
-	
+	/* Safe guarding queue modification*/
+	preempt_disable();	
 	/* Get next ready and currently running threads */
 	queue_dequeue(queue, &next);
 	queue_dequeue(running, &curr);
@@ -227,7 +236,7 @@ void uthread_yield(void)
 	} else { 
 		queue_enqueue(main_queue, (void*)curr_t);	
 	}
-	
+	preempt_enable();	
 	/* Context switch */
 	uthread_ctx_switch( curr_t->context, next_t->context);
 
@@ -254,7 +263,8 @@ int uthread_join(uthread_t tid, int* retval)
 	 
 	void* parent;
 	void* next;
-	
+	/* Safe guarding queue modification*/
+	preempt_disable();
 	/* Set parent to parent thread, either running or main */
 	if(queue_length(running) != 0) {
 		queue_dequeue(running, &parent);
@@ -267,7 +277,7 @@ int uthread_join(uthread_t tid, int* retval)
 	struct uthread* parent_t = (struct uthread*)parent;
 	queue_enqueue(blocked, parent);
 	parent_t->tid_child = tid;
-	
+
 	/* Check if child has finished executing */
 	int is_child_done = check_thread_done(tid);		
 	
@@ -280,11 +290,11 @@ int uthread_join(uthread_t tid, int* retval)
 		/* Run child */
 		struct uthread* next_t = (struct uthread*)next;
 		queue_enqueue(running, (void*)next_t);
-		
+		preempt_enable();
 		/* Switch context to new */
 		uthread_ctx_switch(parent_t->context, next_t->context);
 	}
-	
+	preempt_enable();
 	/* Get child and retval */
 	void* child;
 	queue_iterate(zombies, find_tid , &tid, &child);

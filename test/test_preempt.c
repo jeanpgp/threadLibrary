@@ -56,8 +56,7 @@ int huge(void* arg)
 		if ((i % INTERVAL) == 0) {
 			i = 0;
 			printf("Hello huge %d!\n", ++count_huge_print);
-		}
-		
+		}	
 		if (count_huge_print == END) {
 			printf("\n\nEXITING\n\n\n");
 			break;

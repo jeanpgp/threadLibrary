@@ -2,9 +2,29 @@
 - By Nikhil Razdan & Linda Li
 ***
 # Part I - Queue
+- We implemented Queue as a doubly linked list to allow all operations apart 
+from iterate and delete operation to be O(1).
+- We have two struct implemented: Queue, and Node. Queue stores all the 
+information related to the queue, such as head, tail, and length.
 
 ***
 # Part II - Uthread
+- We have five queues: queue, running, zombies, blocked, main_queue.
+- We represent respectively different states of the thread: ready, running,
+zombie, blocked. We have a special queue for main thread.
+- We implemented a uthread struct. It contains tid, context, stack, tid_child 
+and retval. tid_child stores the tid of the child that is blocking itself. 
+Retval stores the return value of the thread.
+- We passed the thread around in different states, which are implemented as 
+different queues. 
+- When we `yield`, we saves the context of the current thread, and dequeues
+it from running, and enqueue it to queue, which is the ready state. Then, load
+the next thread from (ready)queue.
+- When we `join`, the child thread is granted CPU, and parent is pushed into 
+`blocked`, saving the child tid in child_tid. 
+- When a thread dies, the thread check whether its tid is someone's child_tid.
+If yes, then we unblock the parent, and push it back to ready. if no, we exit,
+saving our retval in our struct so our parent can collect later.
 
 ***
 # Part III - Preemption
@@ -17,9 +37,15 @@
 - Thus, every 0.01 seconds, if preemption is not disabled, we will yield the
   currently running thread
 - `preempt_{disable, enable}` work simply by overwritting the current signal
-  handler with *SIG_IGN* or `timer_handler`, respectively
+  handler with *SIG_IGN* or `timer_handler`, respectively.
+
 ***
 # Part IV - Testing
+
+- Our queue tester checks every situation in which the function might return 
+with a negative 1, as well as all the functionality of the queue.
+- Our yield tester checks that we are able to yield in a correct order, as well
+block parent and unblock parent successfully.
 - Our largest test case, which tests all our implementation 
   `preempt_{start, enable, disable}` and 
   `uthread_{yield, join, exit, create}`, is `test_preempt`
